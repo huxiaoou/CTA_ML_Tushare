@@ -1,0 +1,170 @@
+path:
+  calendar_path: D:\OneDrive\Data\Calendar\cne_calendar.csv
+  root_dir: D:\OneDrive\Data\tushare
+  daily_data_root_dir: D:\OneDrive\Data\tushare\by_date
+  db_struct_path: D:\OneDrive\Data\tushare\db_struct.yaml
+  alternative_dir: D:\OneDrive\Data\Alternative
+  by_instru_pos_dir: D:\OneDrive\Data\tushare\by_instrument\position
+  by_instru_pre_dir: D:\OneDrive\Data\tushare\by_instrument\preprocess
+
+universe:
+  AU.SHF:
+    sectorL0: C
+    sectorL1: AUG
+  AG.SHF:
+    sectorL0: C
+    sectorL1: AUG
+  CU.SHF:
+    sectorL0: C
+    sectorL1: MTL
+  AL.SHF:
+    sectorL0: C
+    sectorL1: MTL
+  PB.SHF:
+    sectorL0: C
+    sectorL1: MTL
+  ZN.SHF:
+    sectorL0: C
+    sectorL1: MTL
+  NI.SHF:
+    sectorL0: C
+    sectorL1: MTL
+  SN.SHF:
+    sectorL0: C
+    sectorL1: MTL
+  SS.SHF:
+    sectorL0: C
+    sectorL1: MTL
+  AO.SHF:
+    sectorL0: C
+    sectorL1: MTL
+  A.DCE:
+    sectorL0: C
+    sectorL1: OIL
+  B.DCE:
+    sectorL0: C
+    sectorL1: OIL
+  M.DCE:
+    sectorL0: C
+    sectorL1: OIL
+  P.DCE:
+    sectorL0: C
+    sectorL1: OIL
+  Y.DCE:
+    sectorL0: C
+    sectorL1: OIL
+  OI.ZCE:
+    sectorL0: C
+    sectorL1: OIL
+  RM.ZCE:
+    sectorL0: C
+    sectorL1: OIL
+  RU.SHF:
+    sectorL0: C
+    sectorL1: CHM
+  BR.SHF:
+    sectorL0: C
+    sectorL1: CHM
+  BU.SHF:
+    sectorL0: C
+    sectorL1: CHM
+  FU.SHF:
+    sectorL0: C
+    sectorL1: CHM
+  L.DCE:
+    sectorL0: C
+    sectorL1: CHM
+  V.DCE:
+    sectorL0: C
+    sectorL1: CHM
+  EB.DCE:
+    sectorL0: C
+    sectorL1: CHM
+  EG.DCE:
+    sectorL0: C
+    sectorL1: CHM
+  PP.DCE:
+    sectorL0: C
+    sectorL1: CHM
+  PG.DCE:
+    sectorL0: C
+    sectorL1: CHM
+  MA.ZCE:
+    sectorL0: C
+    sectorL1: CHM
+  TA.ZCE:
+    sectorL0: C
+    sectorL1: CHM
+  PF.ZCE:
+    sectorL0: C
+    sectorL1: CHM
+  PX.ZCE:
+    sectorL0: C
+    sectorL1: CHM
+  RB.SHF:
+    sectorL0: C
+    sectorL1: BLK
+  HC.SHF:
+    sectorL0: C
+    sectorL1: BLK
+  I.DCE:
+    sectorL0: C
+    sectorL1: BLK
+  J.DCE:
+    sectorL0: C
+    sectorL1: BLK
+  JM.DCE:
+    sectorL0: C
+    sectorL1: BLK
+  SF.ZCE:
+    sectorL0: C
+    sectorL1: BLK
+  SM.ZCE:
+    sectorL0: C
+    sectorL1: BLK
+  ZC.ZCE:
+    sectorL0: C
+    sectorL1: BLK
+  AP.ZCE:
+    sectorL0: C
+    sectorL1: AGR
+  CF.ZCE:
+    sectorL0: C
+    sectorL1: AGR
+  SR.ZCE:
+    sectorL0: C
+    sectorL1: AGR
+  CY.ZCE:
+    sectorL0: C
+    sectorL1: AGR
+  CJ.ZCE:
+    sectorL0: C
+    sectorL1: AGR
+  PK.ZCE:
+    sectorL0: C
+    sectorL1: AGR
+  JD.DCE:
+    sectorL0: C
+    sectorL1: AGR
+  LH.DCE:
+    sectorL0: C
+    sectorL1: AGR
+  C.DCE:
+    sectorL0: C
+    sectorL1: AGR
+  CS.DCE:
+    sectorL0: C
+    sectorL1: AGR
+  RR.DCE:
+    sectorL0: C
+    sectorL1: AGR
+
+  # "UR.ZCE",
+  # "FG.ZCE",
+  # "SA.ZCE",
+  # "SH.ZCE",
+  # "SP.SHF",
+
+available:
+  win: 5
+  amount_threshold: 50000.00

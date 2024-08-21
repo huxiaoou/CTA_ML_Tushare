@@ -1,64 +1,87 @@
+import os
 import yaml
-from typedef import TUniverse, CInstruCfg
+from typedef import TUniverse, CCfgInstru, CCfgAvlbUnvrs
 from typedef import CProCfg, CDbStructCfg
 from husfort.qsqlite import CDbStruct, CSqlTable
 
 # ---------- project configuration ----------
 
 with open("config.yaml", "r") as f:
-    config = yaml.safe_load(f)
+    _config = yaml.safe_load(f)
 
-universe: TUniverse = {k: CInstruCfg(**v) for k, v in config["universe"].items()}
+universe: TUniverse = {k: CCfgInstru(**v) for k, v in _config["universe"].items()}
 
-pro_cfg = CProCfg(
-    calendar_path=config["path"]["calendar_path"],
-    root_dir=config["path"]["root_dir"],
-    daily_data_root_dir=config["path"]["daily_data_root_dir"],
-    db_struct_path=config["path"]["db_struct_path"],
-    alternative_dir=config["path"]["alternative_dir"],
-    by_instru_pos_dir=config["path"]["by_instru_pos_dir"],
-    by_instru_pre_dir=config["path"]["by_instru_pre_dir"],
+proj_cfg = CProCfg(
+    # --- shared
+    calendar_path=_config["path"]["calendar_path"],
+    root_dir=_config["path"]["root_dir"],
+    db_struct_path=_config["path"]["db_struct_path"],
+    alternative_dir=_config["path"]["alternative_dir"],
+    by_instru_pos_dir=_config["path"]["by_instru_pos_dir"],
+    by_instru_pre_dir=_config["path"]["by_instru_pre_dir"],
+
+    # --- project
+    project_root_dir=_config["path"]["project_root_dir"],
+    available_dir=os.path.join(_config["path"]["project_root_dir"], _config["path"]["available_dir"]),  # type:ignore
+
     universe=universe,
+    avlb_unvrs=CCfgAvlbUnvrs(
+        win=_config["available"]["win"],
+        amount_threshold=_config["available"]["amt_thrshld"]
+    )
 )
 
 # ---------- databases structure ----------
-with open(pro_cfg.db_struct_path, "r") as f:
-    db_struct = yaml.safe_load(f)
+with open(proj_cfg.db_struct_path, "r") as f:
+    _db_struct = yaml.safe_load(f)
 
 db_struct_cfg = CDbStructCfg(
+    # --- shared database
     macro=CDbStruct(
-        db_save_dir=pro_cfg.root_dir,
-        db_name=db_struct["macro"]["db_name"],
-        table=CSqlTable(cfg=db_struct["macro"]["table"]),
+        db_save_dir=proj_cfg.root_dir,
+        db_name=_db_struct["macro"]["db_name"],
+        table=CSqlTable(cfg=_db_struct["macro"]["table"]),
     ),
     forex=CDbStruct(
-        db_save_dir=pro_cfg.root_dir,
-        db_name=db_struct["forex"]["db_name"],
-        table=CSqlTable(cfg=db_struct["forex"]["table"]),
+        db_save_dir=proj_cfg.root_dir,
+        db_name=_db_struct["forex"]["db_name"],
+        table=CSqlTable(cfg=_db_struct["forex"]["table"]),
     ),
     fmd=CDbStruct(
-        db_save_dir=pro_cfg.root_dir,
-        db_name=db_struct["fmd"]["db_name"],
-        table=CSqlTable(cfg=db_struct["fmd"]["table"]),
+        db_save_dir=proj_cfg.root_dir,
+        db_name=_db_struct["fmd"]["db_name"],
+        table=CSqlTable(cfg=_db_struct["fmd"]["table"]),
     ),
     position=CDbStruct(
-        db_save_dir=pro_cfg.root_dir,
-        db_name=db_struct["position"]["db_name"],
-        table=CSqlTable(cfg=db_struct["position"]["table"]),
+        db_save_dir=proj_cfg.root_dir,
+        db_name=_db_struct["position"]["db_name"],
+        table=CSqlTable(cfg=_db_struct["position"]["table"]),
     ),
     basis=CDbStruct(
-        db_save_dir=pro_cfg.root_dir,
-        db_name=db_struct["basis"]["db_name"],
-        table=CSqlTable(cfg=db_struct["basis"]["table"]),
+        db_save_dir=proj_cfg.root_dir,
+        db_name=_db_struct["basis"]["db_name"],
+        table=CSqlTable(cfg=_db_struct["basis"]["table"]),
     ),
     stock=CDbStruct(
-        db_save_dir=pro_cfg.root_dir,
-        db_name=db_struct["stock"]["db_name"],
-        table=CSqlTable(cfg=db_struct["stock"]["table"]),
+        db_save_dir=proj_cfg.root_dir,
+        db_name=_db_struct["stock"]["db_name"],
+        table=CSqlTable(cfg=_db_struct["stock"]["table"]),
     ),
     preprocess=CDbStruct(
-        db_save_dir=pro_cfg.by_instru_pre_dir,
-        db_name=db_struct["preprocess"]["db_name"],
-        table=CSqlTable(cfg=db_struct["preprocess"]["table"]),
+        db_save_dir=proj_cfg.by_instru_pre_dir,
+        db_name=_db_struct["preprocess"]["db_name"],
+        table=CSqlTable(cfg=_db_struct["preprocess"]["table"]),
+    ),
+
+    # --- project database
+    available=CDbStruct(
+        db_save_dir=proj_cfg.available_dir,
+        db_name=_config["db_struct"]["available"]["db_name"],
+        table=CSqlTable(cfg=_config["db_struct"]["available"]["table"]),
     ),
 )
+
+if __name__ == "__main__":
+    print(f"Size of universe = {len(universe)}")
+    print(f"databases structures:")
+    print(db_struct_cfg)

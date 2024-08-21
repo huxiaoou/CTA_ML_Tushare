@@ -1,4 +1,5 @@
 path:
+  # --- shared
   calendar_path: D:\OneDrive\Data\Calendar\cne_calendar.csv
   root_dir: D:\OneDrive\Data\tushare
   daily_data_root_dir: D:\OneDrive\Data\tushare\by_date
@@ -6,6 +7,10 @@ path:
   alternative_dir: D:\OneDrive\Data\Alternative
   by_instru_pos_dir: D:\OneDrive\Data\tushare\by_instrument\position
   by_instru_pre_dir: D:\OneDrive\Data\tushare\by_instrument\preprocess
+
+  # --- project
+  project_root_dir: D:\OneDrive\Data\Projects\CTA_ML_Tushare
+  available_dir: available
 
 universe:
   AU.SHF:
@@ -167,4 +172,20 @@ universe:
 
 available:
   win: 5
-  amount_threshold: 50000.00
+  amt_thrshld: 50000.00 # unit = WANYUAN, >= 50000 WANYUAN, or 500 million
+
+# ------- database structure -------
+
+db_struct:
+  available:
+    db_name: available.db
+    table:
+      name: available
+      primary_keys:
+        trade_date: TEXT
+        instrument: TEXT
+      value_columns:
+        return: REAL
+        amount: REAL
+        sectorL0: TEXT
+        sectorL1: TEXT

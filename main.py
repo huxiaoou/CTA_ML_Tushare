@@ -16,17 +16,26 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    from project_cfg import pro_cfg, db_struct_cfg
+    from project_cfg import proj_cfg, db_struct_cfg
     from husfort.qlog import define_logger
     from husfort.qcalendar import CCalendar
 
     define_logger()
 
-    calendar = CCalendar(pro_cfg.calendar_path)
+    calendar = CCalendar(proj_cfg.calendar_path)
     args = parse_args()
     bgn_date, stp_date = args.bgn, args.stp or calendar.get_next_date(args.bgn, shift=1)
 
     if args.switch == "available":
-        raise NotImplementedError
+        from solutions.available import main_available
+
+        main_available(
+            bgn_date=bgn_date, stp_date=stp_date,
+            universe=proj_cfg.universe,
+            cfg_avlb_unvrs=proj_cfg.avlb_unvrs,
+            db_struct_preprocess=db_struct_cfg.preprocess,
+            db_struct_avlb=db_struct_cfg.available,
+            calendar=calendar,
+        )
     else:
         raise ValueError(f"args.switch = {args.switch} is illegal")

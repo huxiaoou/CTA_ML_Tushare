@@ -25,6 +25,9 @@ proj_cfg = CProCfg(
     project_root_dir=_config["path"]["project_root_dir"],
     available_dir=os.path.join(_config["path"]["project_root_dir"], _config["path"]["available_dir"]),  # type:ignore
     market_dir=os.path.join(_config["path"]["project_root_dir"], _config["path"]["market_dir"]),  # type:ignore
+    test_return_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["test_return_dir"]
+    ),
 
     universe=universe,
     avlb_unvrs=CCfgAvlbUnvrs(**_config["available"]),

@@ -5,7 +5,7 @@ def parse_args():
     arg_parser = argparse.ArgumentParser(description="To calculate data, such as macro and forex")
     arg_parser.add_argument(
         "--switch", type=str,
-        choices=("available", "market"),
+        choices=("available", "market", "test_return"),
         required=True
     )
     arg_parser.add_argument("--bgn", type=str, help="begin date, format = [YYYYMMDD]", required=True)
@@ -49,6 +49,16 @@ if __name__ == "__main__":
             mkt_idxes=list(proj_cfg.mkt_idxes.values()),
             sectors=proj_cfg.const.SECTORS,
         )
+    elif args.switch == "test_return":
+        from solutions.test_return import CTstRetRaw
 
+        for lag, win in zip((proj_cfg.const.LAG, 1), (proj_cfg.const.WIN, 1)):
+            tst_ret = CTstRetRaw(
+                lag=lag, win=win,
+                universe=list(proj_cfg.universe),
+                db_tst_ret_save_dir=proj_cfg.test_return_dir,
+                db_struct_preprocess=db_struct_cfg.preprocess,
+            )
+            tst_ret.main_test_return_raw(bgn_date, stp_date, calendar)
     else:
         raise ValueError(f"args.switch = {args.switch} is illegal")

@@ -46,6 +46,7 @@ class CProCfg:
     project_root_dir: str
     available_dir: str
     market_dir: str
+    test_return_dir: str
 
     # --- project parameters
     universe: TUniverse

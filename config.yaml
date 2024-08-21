@@ -13,6 +13,7 @@ path:
   project_root_dir: D:\OneDrive\Data\Projects\CTA_ML_Tushare
   available_dir: available
   market_dir: market
+  test_return_dir: test_return
 
 mkt_idxes:
   COM: NH0100.NHF

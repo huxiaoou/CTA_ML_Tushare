@@ -1,6 +1,6 @@
 import os
 import yaml
-from typedef import TUniverse, CCfgInstru, CCfgAvlbUnvrs
+from typedef import TUniverse, CCfgInstru, CCfgAvlbUnvrs, CCfgConst
 from typedef import CProCfg, CDbStructCfg
 from husfort.qsqlite import CDbStruct, CSqlTable
 
@@ -17,18 +17,19 @@ proj_cfg = CProCfg(
     root_dir=_config["path"]["root_dir"],
     db_struct_path=_config["path"]["db_struct_path"],
     alternative_dir=_config["path"]["alternative_dir"],
+    market_index_path=_config["path"]["market_index_path"],
     by_instru_pos_dir=_config["path"]["by_instru_pos_dir"],
     by_instru_pre_dir=_config["path"]["by_instru_pre_dir"],
 
     # --- project
     project_root_dir=_config["path"]["project_root_dir"],
     available_dir=os.path.join(_config["path"]["project_root_dir"], _config["path"]["available_dir"]),  # type:ignore
+    market_dir=os.path.join(_config["path"]["project_root_dir"], _config["path"]["market_dir"]),  # type:ignore
 
     universe=universe,
-    avlb_unvrs=CCfgAvlbUnvrs(
-        win=_config["available"]["win"],
-        amount_threshold=_config["available"]["amt_thrshld"]
-    )
+    avlb_unvrs=CCfgAvlbUnvrs(**_config["available"]),
+    mkt_idxes=_config["mkt_idxes"],
+    const=CCfgConst(**_config["CONST"]),
 )
 
 # ---------- databases structure ----------
@@ -79,9 +80,16 @@ db_struct_cfg = CDbStructCfg(
         db_name=_config["db_struct"]["available"]["db_name"],
         table=CSqlTable(cfg=_config["db_struct"]["available"]["table"]),
     ),
+    market=CDbStruct(
+        db_save_dir=proj_cfg.market_dir,
+        db_name=_config["db_struct"]["market"]["db_name"],
+        table=CSqlTable(cfg=_config["db_struct"]["market"]["table"]),
+    ),
 )
 
 if __name__ == "__main__":
     print(f"Size of universe = {len(universe)}")
-    print(f"databases structures:")
+    print("databases structures:")
     print(db_struct_cfg)
+    print("project_configuration:")
+    print(proj_cfg)

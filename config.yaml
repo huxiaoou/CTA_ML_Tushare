@@ -5,12 +5,18 @@ path:
   daily_data_root_dir: D:\OneDrive\Data\tushare\by_date
   db_struct_path: D:\OneDrive\Data\tushare\db_struct.yaml
   alternative_dir: D:\OneDrive\Data\Alternative
+  market_index_path: D:\OneDrive\Data\Market\index.xlsx
   by_instru_pos_dir: D:\OneDrive\Data\tushare\by_instrument\position
   by_instru_pre_dir: D:\OneDrive\Data\tushare\by_instrument\preprocess
 
   # --- project
   project_root_dir: D:\OneDrive\Data\Projects\CTA_ML_Tushare
   available_dir: available
+  market_dir: market
+
+mkt_idxes:
+  COM: NH0100.NHF
+  EQT: 881001.WI
 
 universe:
   AU.SHF:
@@ -172,7 +178,7 @@ universe:
 
 available:
   win: 5
-  amt_thrshld: 50000.00 # unit = WANYUAN, >= 50000 WANYUAN, or 500 million
+  amount_threshold: 50000.00 # unit = WANYUAN, >= 50000 WANYUAN, or 500 million
 
 # ------- database structure -------
 
@@ -189,3 +195,31 @@ db_struct:
         amount: REAL
         sectorL0: TEXT
         sectorL1: TEXT
+  market:
+    db_name: market.db
+    table:
+      name: market
+      primary_keys:
+        trade_date: TEXT
+      value_columns:
+        market: REAL
+        C: REAL
+        AUG: REAL
+        MTL: REAL
+        BLK: REAL
+        OIL: REAL
+        CHM: REAL
+        AGR: REAL
+        INH0100_NHF: REAL
+        I881001_WI: REAL
+
+# ------- const -------
+CONST:
+  COST: 0.0003
+  SECTORS: [ "AUG", "MTL", "BLK", "OIL", "CHM", "AGR" ]
+  WIN: 10
+  LAG: 1
+  SHIFT: 11
+  RET_CLASS: "010L1-NEU"
+  RET_NAMES: [ "CloseRtn010L1-NEU", "OpenRtn010L1-NEU" ]
+  MAW: 10

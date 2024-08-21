@@ -5,7 +5,7 @@ def parse_args():
     arg_parser = argparse.ArgumentParser(description="To calculate data, such as macro and forex")
     arg_parser.add_argument(
         "--switch", type=str,
-        choices=("available",),
+        choices=("available", "market"),
         required=True
     )
     arg_parser.add_argument("--bgn", type=str, help="begin date, format = [YYYYMMDD]", required=True)
@@ -37,5 +37,18 @@ if __name__ == "__main__":
             db_struct_avlb=db_struct_cfg.available,
             calendar=calendar,
         )
+    elif args.switch == "market":
+        from solutions.market import main_market
+
+        main_market(
+            bgn_date=bgn_date, stp_date=stp_date,
+            calendar=calendar,
+            db_struct_avlb=db_struct_cfg.available,
+            db_struct_mkt=db_struct_cfg.market,
+            path_mkt_idx_data=proj_cfg.market_index_path,
+            mkt_idxes=list(proj_cfg.mkt_idxes.values()),
+            sectors=proj_cfg.const.SECTORS,
+        )
+
     else:
         raise ValueError(f"args.switch = {args.switch} is illegal")

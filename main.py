@@ -12,6 +12,8 @@ def parse_args():
     arg_parser.add_argument("--stp", type=str, help="stop  date, format = [YYYYMMDD]")
     arg_parser.add_argument("--nomp", default=False, action="store_true",
                             help="not using multiprocess, for debug. Works only when switch in ('preprocess',)")
+    arg_parser.add_argument("--processes", type=int, default=None,
+                            help="number of processes to be called, effective only when nomp = False")
     return arg_parser.parse_args()
 
 
@@ -50,9 +52,10 @@ if __name__ == "__main__":
             sectors=proj_cfg.const.SECTORS,
         )
     elif args.switch == "test_return":
-        from solutions.test_return import CTstRetRaw
+        from solutions.test_return import CTstRetRaw, CTstRetNeu
 
         for lag, win in zip((proj_cfg.const.LAG, 1), (proj_cfg.const.WIN, 1)):
+            # --- raw return
             tst_ret = CTstRetRaw(
                 lag=lag, win=win,
                 universe=list(proj_cfg.universe),
@@ -60,5 +63,22 @@ if __name__ == "__main__":
                 db_struct_preprocess=db_struct_cfg.preprocess,
             )
             tst_ret.main_test_return_raw(bgn_date, stp_date, calendar)
+
+            # --- neutralization
+            tst_ret_neu = CTstRetNeu(
+                lag=lag,
+                win=win,
+                universe=list(proj_cfg.universe),
+                db_tst_ret_save_dir=proj_cfg.test_return_dir,
+                db_struct_preprocess=db_struct_cfg.preprocess,
+                db_struct_avlb=db_struct_cfg.available,
+            )
+            tst_ret_neu.main_test_return_neu(
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                calendar=calendar,
+                call_multiprocess=not args.nomp,
+                processes=args.processes,
+            )
     else:
         raise ValueError(f"args.switch = {args.switch} is illegal")

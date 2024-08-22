@@ -14,6 +14,9 @@ path:
   available_dir: available
   market_dir: market
   test_return_dir: test_return
+  factors_by_instru_dir: factors_by_instru
+  neutral_by_instru_dir: neutral_by_instru
+
 
 mkt_idxes:
   COM: NH0100.NHF

@@ -20,6 +20,8 @@ proj_cfg = CProCfg(
     market_index_path=_config["path"]["market_index_path"],
     by_instru_pos_dir=_config["path"]["by_instru_pos_dir"],
     by_instru_pre_dir=_config["path"]["by_instru_pre_dir"],
+    factors_by_instru_dir=_config["path"]["factors_by_instru_dir"],
+    neutral_by_instru_dir=_config["path"]["neutral_by_instru_dir"],
 
     # --- project
     project_root_dir=_config["path"]["project_root_dir"],

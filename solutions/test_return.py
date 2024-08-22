@@ -170,7 +170,7 @@ class CTstRetNeu(_CTstRetGeneric):
         return res
 
     def normalize(self, data: pd.DataFrame, group_keys: list[str]) -> pd.DataFrame:
-        pool, jobs = mp.Pool(processes=4), []
+        pool, jobs = mp.Pool(), []
         for _, sub_df in data.groupby(group_keys):
             job = pool.apply_async(self.trans_raw_to_rank, args=(sub_df, self.ref_rets), error_callback=error_handler)
             jobs.append(job)

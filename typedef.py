@@ -74,17 +74,17 @@ class CDbStructCfg:
     market: CDbStruct
 
 
+"""
+---------------------------------------
+Part II: Classes and types for factor configuration
+---------------------------------------
+"""
+
 TFactorClass = str
 TFactorName = str
 TFactorNames = list[TFactorName]
 TFactorClassAndNames = tuple[TFactorClass, TFactorNames]
 TFactorComb = tuple[TFactorClass, TFactorNames, str]
-
-"""
----------------------------------------
-Part II: Class for factor configuration
----------------------------------------
-"""
 
 
 @dataclass(frozen=True)

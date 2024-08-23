@@ -39,6 +39,15 @@ class CFactorGeneric:
             sqldb.update(factor_data)
         return 0
 
+    def get_factor_data(self, input_data: pd.DataFrame, bgn_date: str) -> pd.DataFrame:
+        input_data = input_data.query(f"trade_date >= '{bgn_date}'")
+        factor_data = input_data[["trade_date", "ticker"] + self.factor_names]
+        return factor_data
+
+    @staticmethod
+    def rename_ticker(data: pd.DataFrame, old_ticker_name: str = "ticker_major") -> None:
+        data.rename(columns={old_ticker_name: "ticker"}, inplace=True)
+
 
 class CFactorRaw(CFactorGeneric):
     def __init__(
@@ -63,7 +72,7 @@ class CFactorRaw(CFactorGeneric):
         self.db_struct_macro = db_struct_macro
         self.db_struct_mkt = db_struct_mkt
 
-    def load_preprocess(self, instru: str, bgn_date: str, stp_date: str) -> pd.DataFrame:
+    def load_preprocess(self, instru: str, bgn_date: str, stp_date: str, values: list[str] = None) -> pd.DataFrame:
         if self.db_struct_preprocess is not None:
             db_struct_instru = self.db_struct_preprocess.copy_to_another(another_db_name=f"{instru}.db")
             sqldb = CMgrSqlDb(
@@ -72,7 +81,7 @@ class CFactorRaw(CFactorGeneric):
                 table=db_struct_instru.table,
                 mode="r",
             )
-            return sqldb.read_by_range(bgn_date, stp_date)
+            return sqldb.read_by_range(bgn_date, stp_date, value_columns=values)
         else:
             raise ValueError("Argument 'db_struct_preprocess' must be provided")
 

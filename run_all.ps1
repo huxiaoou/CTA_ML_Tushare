@@ -17,3 +17,5 @@ python main.py --bgn $bgn_date --stp $stp_date test_return
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass MTM
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass SKEW
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass RS
+python main.py --bgn $bgn_date --stp $stp_date factor --fclass BASIS
+python main.py --bgn $bgn_date --stp $stp_date factor --fclass TS

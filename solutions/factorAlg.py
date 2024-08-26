@@ -154,8 +154,8 @@ class CFactorBASIS(CFactorRaw):
             values=["trade_date", "ticker_major", "basis_rate"],
         )
         for win in self.cfg.wins:
-            f0 = f"{self.factor_class}{win:03d}"
-            f1 = f"{self.factor_class}D{win:03d}"
+            f0 = f"{self.factor_class}{win:03d}_RAW"
+            f1 = f"{self.factor_class}D{win:03d}_RAW"
             adj_data[f0] = adj_data["basis_rate"].rolling(window=win, min_periods=int(2 * win / 3)).mean()
             adj_data[f1] = adj_data["basis_rate"] - adj_data[f0]
         self.rename_ticker(adj_data)
@@ -170,10 +170,11 @@ class CFactorTS(CFactorRaw):
 
     @staticmethod
     def cal_roll_return(x: pd.Series, ticker_n: str, ticker_d: str, prc_n: str, prc_d: str):
-        if x[ticker_n] == b"" or x[ticker_d] == b"":
+        if x[ticker_n] == "" or x[ticker_d] == "":
             return np.nan
         if x[prc_d] > 0:
-            month_d, month_n = int(x[ticker_d][-2:]), int(x[ticker_n][-2:])
+            cntrct_d, cntrct_n = x[ticker_d].split(".")[0], x[ticker_n].split(".")[0]
+            month_d, month_n = int(cntrct_d[-2:]), int(cntrct_n[-2:])
             dlt_month = month_d - month_n
             dlt_month = dlt_month + (12 if dlt_month <= 0 else 0)
             return (x[prc_n] / x[prc_d] - 1) / dlt_month * 12 * 100
@@ -188,14 +189,15 @@ class CFactorTS(CFactorRaw):
             instru, bgn_date=win_start_date, stp_date=stp_date,
             values=["trade_date", "ticker_major", "ticker_minor", "close_major", "close_minor"],
         )
+        adj_data[["ticker_major", "ticker_minor"]] = adj_data[["ticker_major", "ticker_minor"]].fillna("")
         adj_data["ts"] = adj_data.apply(
             self.cal_roll_return,
             args=("ticker_major", "ticker_minor", "close_major", "close_minor"),
             axis=1,
         )
         for win in self.cfg.wins:
-            f0 = f"{self.factor_class}{win:03d}"
-            f1 = f"{self.factor_class}D{win:03d}"
+            f0 = f"{self.factor_class}{win:03d}_RAW"
+            f1 = f"{self.factor_class}D{win:03d}_RAW"
             adj_data[f0] = adj_data["ts"].rolling(window=win, min_periods=int(2 * win / 3)).mean()
             adj_data[f1] = adj_data["ts"] - adj_data[f0]
         self.rename_ticker(adj_data)

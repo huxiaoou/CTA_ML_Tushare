@@ -139,8 +139,28 @@ if __name__ == "__main__":
                     universe=proj_cfg.universe,
                     db_struct_preprocess=db_struct_cfg.preprocess,
                 )
+        elif fclass == "BASIS":
+            from solutions.factorAlg import CFactorBASIS
+
+            if (cfg := cfg_factors.BASIS) is not None:
+                fac = CFactorBASIS(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
+        elif fclass == "TS":
+            from solutions.factorAlg import CFactorTS
+
+            if (cfg := cfg_factors.TS) is not None:
+                fac = CFactorTS(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
         else:
-            raise ValueError(f"fclass = {args.fclass} is illegal")
+            raise NotImplementedError(f"fclass = {args.fclass}")
 
         if fac is not None:
             fac.main(

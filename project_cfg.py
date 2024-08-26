@@ -146,10 +146,10 @@ cfg_factors = CCfgFactors(
     NDOI=CCfgFactorNDOI(**proj_cfg.factors["NDOI"]),
     WNOI=CCfgFactorWNOI(**proj_cfg.factors["WNOI"]),
     WNDOI=CCfgFactorWNDOI(**proj_cfg.factors["WNDOI"]),
-    AMP=CCfgFactorAMP(**proj_cfg.factors["AMP"]),
-    EXR=CCfgFactorEXR(**proj_cfg.factors["EXR"]),
-    SMT=CCfgFactorSMT(**proj_cfg.factors["SMT"]),
-    RWTC=CCfgFactorRWTC(**proj_cfg.factors["RWTC"]),
+    AMP=None,  # CCfgFactorAMP(**proj_cfg.factors["AMP"]),
+    EXR=None,  # CCfgFactorEXR(**proj_cfg.factors["EXR"]),
+    SMT=None,  # CCfgFactorSMT(**proj_cfg.factors["SMT"]),
+    RWTC=None,  # CCfgFactorRWTC(**proj_cfg.factors["RWTC"]),
 )
 
 if __name__ == "__main__":

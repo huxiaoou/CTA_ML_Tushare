@@ -322,6 +322,49 @@ if __name__ == "__main__":
                     db_struct_pos=db_struct_cfg.position.copy_to_another(
                         another_db_save_dir=proj_cfg.by_instru_pos_dir),
                 )
+        elif fclass == "AMP":
+            from solutions.factorAlg import CFactorAMP
+
+            if (cfg := cfg_factors.AMP) is not None:
+                fac = CFactorAMP(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
+        elif fclass == "EXR":
+            from solutions.factorAlg import CFactorEXR
+
+            if (cfg := cfg_factors.EXR) is not None:
+                fac = CFactorEXR(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_minute_bar=None,  # to be realized
+                )
+        elif fclass == "SMT":
+            from solutions.factorAlg import CFactorSMT
+
+            if (cfg := cfg_factors.SMT) is not None:
+                fac = CFactorSMT(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_minute_bar=None,  # to be realized
+                )
+        elif fclass == "RWTC":
+            from solutions.factorAlg import CFactorRWTC
+
+            if (cfg := cfg_factors.RWTC) is not None:
+                fac = CFactorRWTC(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_minute_bar=None,  # to be realized
+                )
         else:
             raise NotImplementedError(f"fclass = {args.fclass}")
 

@@ -701,7 +701,7 @@ class CFactorAMP(CFactorRaw):
         for win, lbd in ittl.product(self.cfg.wins, self.cfg.lbds):
             top_size = int(win * lbd) + 1
             factor_h, factor_l, factor_d = [
-                f"{self.factor_class}{win:03d}T{int(lbd * 10):02d}{_}" for _ in ["H", "L", "D"]
+                f"{self.factor_class}{win:03d}T{int(lbd * 10):02d}{_}_RAW" for _ in ["H", "L", "D"]
             ]
             r_h_data, r_l_data, r_d_data = {}, {}, {}
             for i, trade_date in enumerate(adj_data.index):
@@ -732,11 +732,11 @@ class CFactorEXR(CFactorRaw):
             idx_exr, exr = tday_minb_data[ret].argmax(), -ret_max
         else:
             idx_exr, exr = tday_minb_data[ret].argmin(), -ret_min
-        res = {"EXR": exr}
+        res = {"EXR_RAW": exr}
         for d in dfts:
             idx_dxr = idx_exr - d
             dxr = -tday_minb_data[ret].iloc[idx_dxr] if idx_dxr >= 0 else exr
-            res[f"DXR{d:02d}"] = dxr
+            res[f"DXR{d:02d}_RAW"] = dxr
         return res
 
     def cal_factor_by_instru(
@@ -754,15 +754,15 @@ class CFactorEXR(CFactorRaw):
         factor_win_dfs: list[pd.DataFrame] = []
         for win in self.cfg.wins:
             rename_mapper = {
-                **{"EXR": f"EXR{win:03d}"},
-                **{f"DXR{d:02d}": f"DXR{win:03d}D{d:02d}" for d in self.cfg.dfts},
+                **{"EXR": f"EXR{win:03d}_RAW"},
+                **{f"DXR{d:02d}": f"DXR{win:03d}D{d:02d}_RAW" for d in self.cfg.dfts},
             }
             factor_win_data = exr_dxr_df.rolling(window=win).mean()
             factor_win_data = factor_win_data.rename(mapper=rename_mapper, axis=1)
             for d in self.cfg.dfts:
-                exr = f"EXR{win:03d}"
-                dxr = f"DXR{win:03d}D{d:02d}"
-                axr = f"AXR{win:03d}D{d:02d}"
+                exr = f"EXR{win:03d}_RAW"
+                dxr = f"DXR{win:03d}D{d:02d}_RAW"
+                axr = f"AXR{win:03d}D{d:02d}_RAW"
                 factor_win_data[axr] = (factor_win_data[exr] + factor_win_data[dxr] * np.sqrt(2)) * 0.5
             factor_win_dfs.append(factor_win_data)
         concat_factor_data = pd.concat(factor_win_dfs, axis=1, ignore_index=False)
@@ -838,8 +838,8 @@ class CFactorSMT(CFactorRaw):
                 sorted_sub_data = sub_data.sort_values(by="smart_idx", ascending=False)
                 p_data[iter_end_date], r_data[iter_end_date] = {}, {}
                 for lbd in self.cfg.lbds:
-                    p_lbl = f"{self.factor_class}{win:03d}T{int(lbd * 10):02d}P"
-                    r_lbl = f"{self.factor_class}{win:03d}T{int(lbd * 10):02d}R"
+                    p_lbl = f"{self.factor_class}{win:03d}T{int(lbd * 10):02d}P_RAW"
+                    r_lbl = f"{self.factor_class}{win:03d}T{int(lbd * 10):02d}R_RAW"
                     smt_p, smt_r = self.cal_smt(sorted_sub_data, lbd=lbd, prc="vwap", ret="freq_ret")
                     p_data[iter_end_date][p_lbl], r_data[iter_end_date][r_lbl] = smt_p, smt_r
             factor_win_p_data = pd.DataFrame.from_dict(p_data, orient="index")
@@ -893,10 +893,10 @@ class CFactorRWTC(CFactorRaw):
         factor_win_dfs: list[pd.DataFrame] = []
         for win in self.cfg.wins:
             rename_mapper = {
-                "RWTCU": f"{self.factor_class}{win:03d}U",
-                "RWTCD": f"{self.factor_class}{win:03d}D",
-                "RWTCT": f"{self.factor_class}{win:03d}T",
-                "RWTCV": f"{self.factor_class}{win:03d}V",
+                "RWTCU": f"{self.factor_class}{win:03d}U_RAW",
+                "RWTCD": f"{self.factor_class}{win:03d}D_RAW",
+                "RWTCT": f"{self.factor_class}{win:03d}T_RAW",
+                "RWTCV": f"{self.factor_class}{win:03d}V_RAW",
             }
             factor_win_data = rwtc_df.rolling(window=win).mean()
             factor_win_data = factor_win_data.rename(mapper=rename_mapper, axis=1)

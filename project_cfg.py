@@ -2,6 +2,33 @@ import os
 import yaml
 from typedef import TUniverse, CCfgInstru, CCfgAvlbUnvrs, CCfgConst
 from typedef import CProCfg, CDbStructCfg
+from typedef import (
+    CCfgFactors,
+    CCfgFactorMTM,
+    CCfgFactorSKEW,
+    CCfgFactorRS,
+    CCfgFactorBASIS,
+    CCfgFactorTS,
+    CCfgFactorS0BETA,
+    CCfgFactorS1BETA,
+    CCfgFactorCBETA,
+    CCfgFactorIBETA,
+    CCfgFactorPBETA,
+    CCfgFactorCTP,
+    CCfgFactorCTR,
+    CCfgFactorCVP,
+    CCfgFactorCVR,
+    CCfgFactorCSP,
+    CCfgFactorCSR,
+    CCfgFactorNOI,
+    CCfgFactorNDOI,
+    CCfgFactorWNOI,
+    CCfgFactorWNDOI,
+    CCfgFactorAMP,
+    CCfgFactorEXR,
+    CCfgFactorSMT,
+    CCfgFactorRWTC,
+)
 from husfort.qsqlite import CDbStruct, CSqlTable
 
 # ---------- project configuration ----------
@@ -20,8 +47,6 @@ proj_cfg = CProCfg(
     market_index_path=_config["path"]["market_index_path"],
     by_instru_pos_dir=_config["path"]["by_instru_pos_dir"],
     by_instru_pre_dir=_config["path"]["by_instru_pre_dir"],
-    factors_by_instru_dir=_config["path"]["factors_by_instru_dir"],
-    neutral_by_instru_dir=_config["path"]["neutral_by_instru_dir"],
 
     # --- project
     project_root_dir=_config["path"]["project_root_dir"],
@@ -30,11 +55,18 @@ proj_cfg = CProCfg(
     test_return_dir=os.path.join(  # type:ignore
         _config["path"]["project_root_dir"], _config["path"]["test_return_dir"]
     ),
+    factors_by_instru_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["factors_by_instru_dir"]
+    ),
+    neutral_by_instru_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["neutral_by_instru_dir"]
+    ),
 
     universe=universe,
     avlb_unvrs=CCfgAvlbUnvrs(**_config["available"]),
     mkt_idxes=_config["mkt_idxes"],
     const=CCfgConst(**_config["CONST"]),
+    factors=_config["factors"],
 )
 
 # ---------- databases structure ----------
@@ -90,6 +122,34 @@ db_struct_cfg = CDbStructCfg(
         db_name=_config["db_struct"]["market"]["db_name"],
         table=CSqlTable(cfg=_config["db_struct"]["market"]["table"]),
     ),
+)
+
+# --- factors ---
+cfg_factors = CCfgFactors(
+    MTM=CCfgFactorMTM(**proj_cfg.factors["MTM"]),
+    SKEW=CCfgFactorSKEW(**proj_cfg.factors["SKEW"]),
+    RS=CCfgFactorRS(**proj_cfg.factors["RS"]),
+    BASIS=CCfgFactorBASIS(**proj_cfg.factors["BASIS"]),
+    TS=CCfgFactorTS(**proj_cfg.factors["TS"]),
+    S0BETA=CCfgFactorS0BETA(**proj_cfg.factors["S0BETA"]),
+    S1BETA=CCfgFactorS1BETA(**proj_cfg.factors["S1BETA"]),
+    CBETA=CCfgFactorCBETA(**proj_cfg.factors["CBETA"]),
+    IBETA=CCfgFactorIBETA(**proj_cfg.factors["IBETA"]),
+    PBETA=CCfgFactorPBETA(**proj_cfg.factors["PBETA"]),
+    CTP=CCfgFactorCTP(**proj_cfg.factors["CTP"]),
+    CTR=None,  # CCfgFactorCTR(**proj_cfg.factors["CTR"]),
+    CVP=CCfgFactorCVP(**proj_cfg.factors["CVP"]),
+    CVR=None,  # CCfgFactorCVR(**proj_cfg.factors["CVR"]),
+    CSP=CCfgFactorCSP(**proj_cfg.factors["CSP"]),
+    CSR=None,  # CCfgFactorCSR(**proj_cfg.factors["CSR"]),
+    NOI=CCfgFactorNOI(**proj_cfg.factors["NOI"]),
+    NDOI=CCfgFactorNDOI(**proj_cfg.factors["NDOI"]),
+    WNOI=None,  # CCfgFactorWNOI(**proj_cfg.factors["WNOI"]),
+    WNDOI=None,  # CCfgFactorWNDOI(**proj_cfg.factors["WNDOI"]),
+    AMP=CCfgFactorAMP(**proj_cfg.factors["AMP"]),
+    EXR=CCfgFactorEXR(**proj_cfg.factors["EXR"]),
+    SMT=CCfgFactorSMT(**proj_cfg.factors["SMT"]),
+    RWTC=CCfgFactorRWTC(**proj_cfg.factors["RWTC"]),
 )
 
 if __name__ == "__main__":

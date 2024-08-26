@@ -227,3 +227,70 @@ CONST:
   RET_CLASS: "010L1-NEU"
   RET_NAMES: [ "CloseRtn010L1-NEU", "OpenRtn010L1-NEU" ]
   MAW: 10
+
+# ------- factors -------
+factors:
+  MTM:
+    wins: [ 20, 60, 120, 240 ]
+  SKEW:
+    wins: [ 20, 60, 120, 240 ]
+  RS:
+    wins: [ 20, 60, 120, 240 ]
+  BASIS:
+    wins: [ 20, 60, 120, 240 ]
+  TS:
+    wins: [ 20, 60, 120, 240 ]
+  S0BETA: # SectorL0
+    wins: [ 20, 60, 120, 240 ]
+  S1BETA: # SectorL1
+    wins: [ 20, 60, 120, 240 ]
+  CBETA: # Currency, forex
+    wins: [ 20, 60, 120, 240 ]
+  IBETA: # Inflation, CPI
+    wins: [ 63, 126, 252 ]
+  PBETA: # PPI
+    wins: [ 63, 126, 252 ]
+  CTP:
+    wins: [ 60, 120, 240 ]
+    tops: [ 0.1, 0.2, 0.5 ]
+  CTR:
+    wins: [ 60, 120, 240 ]
+    tops: [ 0.1, 0.2, 0.5 ]
+  CVP:
+    wins: [ 60, 120, 240 ]
+    tops: [ 0.1, 0.2, 0.5 ]
+  CVR:
+    wins: [ 60, 120, 240 ]
+    tops: [ 0.1, 0.2, 0.5 ]
+  CSP:
+    wins: [ 60, 120, 240 ]
+    tops: [ 0.1, 0.2, 0.5 ]
+  CSR:
+    wins: [ 60, 120, 240 ]
+    tops: [ 0.1, 0.2, 0.5 ]
+  NOI:
+    wins: [ 20, 60, 120, 240 ]
+    tops: [ 5 ]
+  NDOI:
+    wins: [ 20, 60, 120, 240 ]
+    tops: [ 5 ]
+  WNOI:
+    wins: [ 20, 60, 120, 240 ]
+    tops: [ 5 ]
+  WNDOI:
+    wins: [ 20, 60, 120, 240 ]
+    tops: [ 5 ]
+  AMP:
+    wins: [ 20, 60 ]
+    lbds: [ 0.3, 0.6, 0.9 ]
+  EXR:
+    freq: "m01e"
+    wins: [ 20, 40, 60 ]
+    dfts: [ 3 ]
+  SMT:
+    freq: "m01e"
+    wins: [ 5, 10, 20 ]
+    lbds: [ 0.2, 0.4, 0.6 ]
+  RWTC:
+    freq: "m01e"
+    wins: [ 5, 10, 20 ]

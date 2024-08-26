@@ -56,6 +56,7 @@ class CProCfg:
     avlb_unvrs: CCfgAvlbUnvrs
     mkt_idxes: dict
     const: CCfgConst
+    factors: dict
 
 
 @dataclass(frozen=True)

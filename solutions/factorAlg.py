@@ -1,10 +1,7 @@
 import numpy as np
 import pandas as pd
 import itertools as ittl
-from dataclasses import dataclass
 from husfort.qcalendar import CCalendar
-from typedef import TFactorClass, TFactorNames, TFactorName, TFactorClassAndNames
-from typedef import TFactorComb
 from typedef import (
     CCfgFactorMTM, CCfgFactorSKEW, CCfgFactorRS,
     CCfgFactorBASIS, CCfgFactorTS,
@@ -553,23 +550,34 @@ class __CFactorMbrPos(CFactorRaw):
         self.using_diff = cfg.factor_class in ["NDOI", "WNDOI"]
         super().__init__(factor_class=cfg.factor_class, factor_names=cfg.factor_names, **kwargs)
 
-    def cal_core(self, mbr_pos_data: pd.DataFrame, top: int, instru_oi_data: pd.DataFrame) -> pd.DataFrame:
+    def cal_core(self, pos_data: pd.DataFrame, top: int, instru_oi_data: pd.DataFrame) -> pd.DataFrame:
         def __robust_rate(z: pd.Series) -> float:
             return z.iloc[0] / z.iloc[1] * 100 if z.iloc[1] > 0 else np.nan
 
-        filter_type = mbr_pos_data["info_type"] >= 2  # info_type = 2 or 3
-        filter_rank = mbr_pos_data["info_rank"] <= top
-        selected_df = mbr_pos_data[filter_type & filter_rank]
+        cntrct_pos_data = pos_data.query("code_type == 0")
+
+        lng_pos_data = cntrct_pos_data[["trade_date", "ts_code", "broker", "long_hld", "long_chg"]].dropna(
+            subset=["long_hld", "long_chg"], how="any")
+        lng_rnk_data = lng_pos_data[["trade_date", "ts_code", "long_hld"]].groupby(by=["trade_date", "ts_code"]).rank()
+        lng_data = pd.merge(
+            left=lng_pos_data, right=lng_rnk_data,
+            left_index=True, right_index=True,
+            how="left", suffixes=("", "_rnk")
+        )
+        lng_data_slc = lng_data.query(f"long_hld_rnk <= {top}")
+
         oi_df = pd.pivot_table(
-            data=selected_df,
+            data=lng_data_slc,
             index="trade_date",
-            columns="info_type",
-            values="info_qty_dlt" if self.using_diff else "info_qty",
+            values="long_hld" if self.using_diff else "long_hld_chg",
             aggfunc=auto_weight_sum if self.call_weight_sum else "sum",
         )
-        oi_df.columns = oi_df.columns.to_flat_index()
-        oi_df = oi_df.merge(right=instru_oi_data, left_index=True, right_index=True, how="left")
-        oi_df["noi_sum"] = oi_df[2].fillna(0) - oi_df[3].fillna(0)
+        oi_df = oi_df.merge(right=instru_oi_data, left_index=True, right_on="trade_date", how="left")
+        if self.using_diff:
+            oi_df["noi_sum"] = oi_df["long_hld_chg"]
+        else:
+            oi_df["noi_sum"] = oi_df["long_hld"]
+
         oi_df["net"] = oi_df[["noi_sum", "oi_instru"]].apply(__robust_rate, axis=1)
         res = oi_df[["net"]]
         return res
@@ -580,34 +588,32 @@ class __CFactorMbrPos(CFactorRaw):
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
 
         # load adj major data as header
-        adj_major_data = self.get_adj_major_data(instru, win_start_date, end_date)
-        adj_major_data = adj_major_data[["ticker"]]
-
-        # load preprocess
-        adj_preprocess_data = self.get_adj_preprocess_data(instru, win_start_date, end_date)
-        adj_preprocess_data = adj_preprocess_data[["oi_instru"]]
+        adj_data = self.load_preprocess(
+            instru, bgn_date=win_start_date, stp_date=stp_date,
+            values=["trade_date", "ticker_major", "oi_instru"],
+        )
 
         # load member
-        adj_mbr_pos_data = self.get_adj_mbr_pos_data(instru, win_start_date, end_date)
+        pos_data = self.load_pos(
+            instru, bgn_date=win_start_date, stp_date=stp_date,
+            values=[
+                "trade_date", "ts_code", "broker",
+                "long_hld", "long_chg", "short_hld", "short_chg",
+                "code_type"
+            ]
+        )
 
         # cal
         res = {}
         for top in self.cfg.tops:
-            net_data = self.cal_core(mbr_pos_data=adj_mbr_pos_data, top=top, instru_oi_data=adj_preprocess_data)
-            for win in self.cfg.wins:
+            net_data = self.cal_core(pos_data=pos_data, top=top, instru_oi_data=adj_data[["trade_date", "oi_instru"]])
+            for win, factor_name in zip(self.cfg.wins, self.factor_names):
                 mp = int(2 * win / 3)
-                factor_name = f"{self.factor_class}{win:03d}T{top:02d}"
                 res[factor_name] = net_data["net"].rolling(window=win, min_periods=mp).mean()
         res_df = pd.DataFrame(res)
 
         # merge to header
-        adj_data = pd.merge(
-            left=adj_major_data,
-            right=res_df,
-            left_index=True,
-            right_index=True,
-            how="left",
-        )
+        adj_data = pd.merge(left=adj_data, right=res_df, on="trade_date", how="left")
         factor_data = self.get_factor_data(adj_data, bgn_date)
         return factor_data
 
@@ -651,24 +657,24 @@ class CFactorAMP(CFactorRaw):
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
-        adj_major_data = self.get_adj_major_data(instru, win_start_date, end_date)
-        adj_major_data["amp"] = adj_major_data["high"] / adj_major_data["low"] - 1
-        adj_major_data["spot"] = adj_major_data["closeM"]
+        adj_data = self.load_minute_bar(instru, bgn_date=win_start_date, stp_date=stp_date)
+        adj_data["amp"] = adj_data["high"] / adj_data["low"] - 1
+        adj_data["spot"] = adj_data["closeM"]
         for win, lbd in ittl.product(self.cfg.wins, self.cfg.lbds):
             top_size = int(win * lbd) + 1
             factor_h, factor_l, factor_d = [
                 f"{self.factor_class}{win:03d}T{int(lbd * 10):02d}{_}" for _ in ["H", "L", "D"]
             ]
             r_h_data, r_l_data, r_d_data = {}, {}, {}
-            for i, trade_date in enumerate(adj_major_data.index):
-                if (trade_date < bgn_date) or (trade_date > end_date):
+            for i, trade_date in enumerate(adj_data.index):
+                if (trade_date < bgn_date) or (trade_date >= stp_date):
                     continue
-                sub_data = adj_major_data.iloc[i - win + 1: i + 1]
+                sub_data = adj_data.iloc[i - win + 1: i + 1]
                 rh, rl, rd = self.cal_amp(sub_data=sub_data, x="amp", sort_var="spot", top_size=top_size)
                 r_h_data[trade_date], r_l_data[trade_date], r_d_data[trade_date] = rh, rl, rd
             for iter_data, factor in zip([r_h_data, r_l_data, r_d_data], [factor_h, factor_l, factor_d]):
-                adj_major_data[factor] = pd.Series(iter_data)
-        factor_data = self.get_factor_data(adj_major_data, bgn_date=bgn_date)
+                adj_data[factor] = pd.Series(iter_data)
+        factor_data = self.get_factor_data(adj_data, bgn_date=bgn_date)
         return factor_data
 
 
@@ -699,8 +705,8 @@ class CFactorEXR(CFactorRaw):
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
-        adj_major_data = self.get_adj_major_data(instru, win_start_date, end_date)
-        adj_minb_data = self.get_adj_minute_bar_data(instru, win_start_date, end_date, freq=self.cfg.freq)
+        adj_major_data = self.load_preprocess(instru, bgn_date=win_start_date, stp_date=stp_date)
+        adj_minb_data = self.load_minute_bar(instru, bgn_date=win_start_date, stp_date=stp_date)
         adj_minb_data["freq_ret"] = adj_minb_data["close"] / adj_minb_data["preclose"] - 1
         adj_minb_data["freq_ret"] = adj_minb_data["freq_ret"].fillna(0)
         res_srs = adj_minb_data.groupby(by="trade_date").apply(
@@ -770,9 +776,8 @@ class CFactorSMT(CFactorRaw):
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
-        adj_major_data = self.get_adj_major_data(instru, win_start_date, end_date)
-
-        adj_minb_data = self.get_adj_minute_bar_data(instru, win_start_date, end_date, freq=self.cfg.freq)
+        adj_major_data = self.load_preprocess(instru, bgn_date=win_start_date, stp_date=stp_date)
+        adj_minb_data = self.load_minute_bar(instru, bgn_date=win_start_date, stp_date=stp_date)
         adj_minb_data["freq_ret"] = adj_minb_data["close"] / adj_minb_data["preclose"] - 1
         adj_minb_data["freq_ret"] = adj_minb_data["freq_ret"].fillna(0)
 
@@ -785,7 +790,7 @@ class CFactorSMT(CFactorRaw):
 
         factor_win_dfs: list[pd.DataFrame] = []
         for win in self.cfg.wins:
-            iter_tail_dates = calendar.get_iter_list(bgn_date, end_date)
+            iter_tail_dates = calendar.get_iter_list(bgn_date, stp_date)
             base_bgn_date = calendar.get_next_date(iter_tail_dates[0], -win + 1)
             base_end_date = calendar.get_next_date(iter_tail_dates[-1], -win + 1)
             iter_head_dates = calendar.get_iter_list(base_bgn_date, base_end_date)
@@ -839,9 +844,8 @@ class CFactorRWTC(CFactorRaw):
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
-        adj_major_data = self.get_adj_major_data(instru, win_start_date, end_date)
-
-        adj_minb_data = self.get_adj_minute_bar_data(instru, win_start_date, end_date, freq=self.cfg.freq)
+        adj_major_data = self.load_preprocess(instru, bgn_date=win_start_date, stp_date=stp_date)
+        adj_minb_data = self.load_minute_bar(instru, bgn_date=win_start_date, stp_date=stp_date)
         adj_minb_data["freq_ret"] = adj_minb_data["close"] / adj_minb_data["preclose"] - 1
         adj_minb_data["freq_ret"] = adj_minb_data["freq_ret"].fillna(0)
         res_srs = adj_minb_data.groupby(by="trade_date").apply(

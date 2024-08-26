@@ -590,29 +590,33 @@ class __CFactorMbrPos(CFactorRaw):
 
         lng_pos_data = cntrct_pos_data[["trade_date", "ts_code", "broker", "long_hld", "long_chg"]].dropna(
             subset=["long_hld", "long_chg"], how="any")
-        lng_rnk_data = lng_pos_data[["trade_date", "ts_code", "long_hld"]].groupby(by=["trade_date", "ts_code"]).rank()
+        lng_rnk_data = lng_pos_data[["trade_date", "ts_code", "long_hld"]].groupby(
+            by=["trade_date", "ts_code"]).rank(ascending=False)
         lng_data = pd.merge(
             left=lng_pos_data, right=lng_rnk_data,
             left_index=True, right_index=True,
             how="left", suffixes=("", "_rnk")
-        )
+        ).sort_values(by=["trade_date", "ts_code", "long_hld_rnk"], ascending=True)
         lng_data_slc = lng_data.query(f"long_hld_rnk <= {top}")
 
         oi_df = pd.pivot_table(
             data=lng_data_slc,
             index="trade_date",
-            values="long_hld" if self.using_diff else "long_hld_chg",
+            values="long_chg" if self.using_diff else "long_hld",
             aggfunc=auto_weight_sum if self.call_weight_sum else "sum",
         )
-        oi_df = oi_df.merge(right=instru_oi_data, left_index=True, right_on="trade_date", how="left")
-        if self.using_diff:
-            oi_df["noi_sum"] = oi_df["long_hld_chg"]
-        else:
-            oi_df["noi_sum"] = oi_df["long_hld"]
 
-        oi_df["net"] = oi_df[["noi_sum", "oi_instru"]].apply(__robust_rate, axis=1)
-        res = oi_df[["net"]]
-        return res
+        noi_df = pd.merge(
+            left=instru_oi_data.set_index("trade_date"), right=oi_df,
+            left_index=True, right_index=True, how="left",
+        )
+        if self.using_diff:
+            noi_df["noi_sum"] = noi_df["long_chg"]  # -oi_df["short_chg"]
+        else:
+            noi_df["noi_sum"] = noi_df["long_hld"]  # -oi_df["short_hld"]
+
+        noi_df["net"] = noi_df[["noi_sum", "oi_instru"]].apply(__robust_rate, axis=1)
+        return noi_df[["net"]]
 
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
@@ -639,13 +643,15 @@ class __CFactorMbrPos(CFactorRaw):
         res = {}
         for top in self.cfg.tops:
             net_data = self.cal_core(pos_data=pos_data, top=top, instru_oi_data=adj_data[["trade_date", "oi_instru"]])
-            for win, factor_name in zip(self.cfg.wins, self.factor_names):
+            for win in self.cfg.wins:
                 mp = int(2 * win / 3)
+                factor_name = f"{self.factor_class}{win:03d}T{top:02d}_RAW"
                 res[factor_name] = net_data["net"].rolling(window=win, min_periods=mp).mean()
-        res_df = pd.DataFrame(res)
+        res_df = pd.DataFrame(res).reset_index()
 
         # merge to header
         adj_data = pd.merge(left=adj_data, right=res_df, on="trade_date", how="left")
+        self.rename_ticker(adj_data)
         factor_data = self.get_factor_data(adj_data, bgn_date)
         return factor_data
 

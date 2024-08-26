@@ -379,7 +379,7 @@ class CCfgFactorNOI(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0 = [f"{self.factor_class}{w:03d}T{t:02d}" for w, t in ittl.product(self.wins, self.tops)]
+        n0 = [f"{self.factor_class}{w:03d}T{t:02d}_RAW" for w, t in ittl.product(self.wins, self.tops)]
         return n0
 
 
@@ -394,7 +394,7 @@ class CCfgFactorNDOI(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0 = [f"{self.factor_class}{w:03d}T{t:02d}" for w, t in ittl.product(self.wins, self.tops)]
+        n0 = [f"{self.factor_class}{w:03d}T{t:02d}_RAW" for w, t in ittl.product(self.wins, self.tops)]
         return n0
 
 
@@ -409,7 +409,7 @@ class CCfgFactorWNOI(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0 = [f"{self.factor_class}{w:03d}T{t:02d}" for w, t in ittl.product(self.wins, self.tops)]
+        n0 = [f"{self.factor_class}{w:03d}T{t:02d}_RAW" for w, t in ittl.product(self.wins, self.tops)]
         return n0
 
 
@@ -424,7 +424,7 @@ class CCfgFactorWNDOI(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0 = [f"{self.factor_class}{w:03d}T{t:02d}" for w, t in ittl.product(self.wins, self.tops)]
+        n0 = [f"{self.factor_class}{w:03d}T{t:02d}_RAW" for w, t in ittl.product(self.wins, self.tops)]
         return n0
 
 
@@ -439,11 +439,11 @@ class CCfgFactorAMP(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        nh: TFactorNames = [f"{self.factor_class}{w:03d}T{int(l * 10):02d}H" for w, l in
+        nh: TFactorNames = [f"{self.factor_class}{w:03d}T{int(l * 10):02d}H_RAW" for w, l in
                             ittl.product(self.wins, self.lbds)]
-        nl: TFactorNames = [f"{self.factor_class}{w:03d}T{int(l * 10):02d}L" for w, l in
+        nl: TFactorNames = [f"{self.factor_class}{w:03d}T{int(l * 10):02d}L_RAW" for w, l in
                             ittl.product(self.wins, self.lbds)]
-        nd: TFactorNames = [f"{self.factor_class}{w:03d}T{int(l * 10):02d}D" for w, l in
+        nd: TFactorNames = [f"{self.factor_class}{w:03d}T{int(l * 10):02d}D_RAW" for w, l in
                             ittl.product(self.wins, self.lbds)]
         return nh + nl + nd
 
@@ -460,9 +460,9 @@ class CCfgFactorEXR(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0: TFactorNames = [f"{self.factor_class}{w:03d}" for w in self.wins]
-        n1: TFactorNames = [f"DXR{w:03d}D{d:02d}" for w, d in ittl.product(self.wins, self.dfts)]
-        n2: TFactorNames = [f"AXR{w:03d}D{d:02d}" for w, d in ittl.product(self.wins, self.dfts)]
+        n0: TFactorNames = [f"{self.factor_class}{w:03d}_RAW" for w in self.wins]
+        n1: TFactorNames = [f"DXR{w:03d}D{d:02d}_RAW" for w, d in ittl.product(self.wins, self.dfts)]
+        n2: TFactorNames = [f"AXR{w:03d}D{d:02d}_RAW" for w, d in ittl.product(self.wins, self.dfts)]
         return n0 + n1 + n2
 
 
@@ -478,9 +478,9 @@ class CCfgFactorSMT(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n_prc: TFactorNames = [f"{self.factor_class}{w:03d}T{int(l * 10):02d}P" for w, l in
+        n_prc: TFactorNames = [f"{self.factor_class}{w:03d}T{int(l * 10):02d}P_RAW" for w, l in
                                ittl.product(self.wins, self.lbds)]
-        n_ret: TFactorNames = [f"{self.factor_class}{w:03d}T{int(l * 10):02d}R" for w, l in
+        n_ret: TFactorNames = [f"{self.factor_class}{w:03d}T{int(l * 10):02d}R_RAW" for w, l in
                                ittl.product(self.wins, self.lbds)]
         return n_prc + n_ret
 
@@ -496,11 +496,11 @@ class CCfgFactorRWTC(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        nu = [TFactorName(f"{self.factor_class}{w:03d}U") for w in self.wins]
-        nd = [TFactorName(f"{self.factor_class}{w:03d}D") for w in self.wins]
-        nt = [TFactorName(f"{self.factor_class}{w:03d}T") for w in self.wins]
-        nv = [TFactorName(f"{self.factor_class}{w:03d}V") for w in self.wins]
-        return TFactorNames(nu + nd + nt + nv)
+        nu = [f"{self.factor_class}{w:03d}U_RAW" for w in self.wins]
+        nd = [f"{self.factor_class}{w:03d}D_RAW" for w in self.wins]
+        nt = [f"{self.factor_class}{w:03d}T_RAW" for w in self.wins]
+        nv = [f"{self.factor_class}{w:03d}V_RAW" for w in self.wins]
+        return nu + nd + nt + nv
 
 
 @dataclass(frozen=True)

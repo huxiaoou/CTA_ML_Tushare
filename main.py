@@ -274,6 +274,54 @@ if __name__ == "__main__":
                     universe=proj_cfg.universe,
                     db_struct_preprocess=db_struct_cfg.preprocess,
                 )
+        elif fclass == "NOI":
+            from solutions.factorAlg import CFactorNOI
+
+            if (cfg := cfg_factors.NOI) is not None:
+                fac = CFactorNOI(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_pos=db_struct_cfg.position.copy_to_another(
+                        another_db_save_dir=proj_cfg.by_instru_pos_dir),
+                )
+        elif fclass == "NDOI":
+            from solutions.factorAlg import CFactorNDOI
+
+            if (cfg := cfg_factors.NDOI) is not None:
+                fac = CFactorNDOI(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_pos=db_struct_cfg.position.copy_to_another(
+                        another_db_save_dir=proj_cfg.by_instru_pos_dir),
+                )
+        elif fclass == "WNOI":
+            from solutions.factorAlg import CFactorWNOI
+
+            if (cfg := cfg_factors.WNOI) is not None:
+                fac = CFactorWNOI(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_pos=db_struct_cfg.position.copy_to_another(
+                        another_db_save_dir=proj_cfg.by_instru_pos_dir),
+                )
+        elif fclass == "WNDOI":
+            from solutions.factorAlg import CFactorWNDOI
+
+            if (cfg := cfg_factors.WNDOI) is not None:
+                fac = CFactorWNDOI(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_pos=db_struct_cfg.position.copy_to_another(
+                        another_db_save_dir=proj_cfg.by_instru_pos_dir),
+                )
         else:
             raise NotImplementedError(f"fclass = {args.fclass}")
 

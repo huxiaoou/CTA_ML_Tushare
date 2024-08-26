@@ -159,6 +159,61 @@ if __name__ == "__main__":
                     universe=proj_cfg.universe,
                     db_struct_preprocess=db_struct_cfg.preprocess,
                 )
+        elif fclass == "S0BETA":
+            from solutions.factorAlg import CFactorS0BETA
+
+            if (cfg := cfg_factors.S0BETA) is not None:
+                fac = CFactorS0BETA(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_mkt=db_struct_cfg.market,
+                )
+        elif fclass == "S1BETA":
+            from solutions.factorAlg import CFactorS1BETA
+
+            if (cfg := cfg_factors.S1BETA) is not None:
+                fac = CFactorS1BETA(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_mkt=db_struct_cfg.market,
+                )
+        elif fclass == "CBETA":
+            from solutions.factorAlg import CFactorCBETA
+
+            if (cfg := cfg_factors.CBETA) is not None:
+                fac = CFactorCBETA(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_forex=db_struct_cfg.forex,
+                )
+        elif fclass == "IBETA":
+            from solutions.factorAlg import CFactorIBETA
+
+            if (cfg := cfg_factors.IBETA) is not None:
+                fac = CFactorIBETA(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_macro=db_struct_cfg.macro,
+                )
+        elif fclass == "PBETA":
+            from solutions.factorAlg import CFactorPBETA
+
+            if (cfg := cfg_factors.PBETA) is not None:
+                fac = CFactorPBETA(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_macro=db_struct_cfg.macro,
+                )
         else:
             raise NotImplementedError(f"fclass = {args.fclass}")
 

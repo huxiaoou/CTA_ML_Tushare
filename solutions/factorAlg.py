@@ -208,28 +208,29 @@ class CFactorTS(CFactorRaw):
 class __CFactorBETA(CFactorRaw):
     @staticmethod
     def merge_xy(x_data: pd.DataFrame, y_data: pd.DataFrame) -> pd.DataFrame:
-        adj_data = pd.merge(left=x_data, right=y_data, how="left", left_index=True, right_index=True)
+        adj_data = pd.merge(left=x_data, right=y_data, how="left", on="trade_date")
         return adj_data
 
     def betas_from_wins(self, wins: list[int], input_data: pd.DataFrame, x: str, y: str):
-        f0 = f"{self.factor_class}{wins[0]:03d}"
+        __prefix0 = f"{self.factor_class}{wins[0]:03d}"
+        f0 = f"{__prefix0}_RAW"
         for i, win in enumerate(wins):
-            fi = f"{self.factor_class}{win:03d}"
+            fi = f"{self.factor_class}{win:03d}_RAW"
             input_data[fi] = cal_rolling_beta(df=input_data, x=x, y=y, rolling_window=win)
             if i > 0:
-                fid = f"{f0}D{win:03d}"
+                fid = f"{__prefix0}D{win:03d}_RAW"
                 input_data[fid] = input_data[f0] - input_data[fi]
         return 0
 
     def res_from_wins(self, wins: list[int], input_data: pd.DataFrame, x: str, y: str):
         for i, win in enumerate(wins):
-            b, fi = f"{self.factor_class}{win:03d}", f"{self.factor_class}{win:03d}RES"
+            b, fi = f"{self.factor_class}{win:03d}_RAW", f"{self.factor_class}{win:03d}RES_RAW"
             input_data[fi] = input_data[y] - input_data[x] * input_data[b]
         return 0
 
     def res_std_from_wins(self, wins: list[int], input_data: pd.DataFrame):
         for i, win in enumerate(wins):
-            res, fi = f"{self.factor_class}{win:03d}RES", f"{self.factor_class}{win:03d}RESSTD"
+            res, fi = f"{self.factor_class}{win:03d}RES_RAW", f"{self.factor_class}{win:03d}RESSTD_RAW"
             input_data[fi] = input_data[res].rolling(window=win, min_periods=int(win * 0.6)).std()
         return 0
 
@@ -242,7 +243,7 @@ class CFactorS0BETA(__CFactorBETA):
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
-        __x_ret = "NH0100.NHF" if self.universe[instru].sectorL0 == "C" else "881001.WI"
+        __x_ret = "INH0100_NHF" if self.universe[instru].sectorL0 == "C" else "I881001_WI"
         __y_ret = "return_c_major"
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
         adj_major_data = self.load_preprocess(
@@ -250,7 +251,10 @@ class CFactorS0BETA(__CFactorBETA):
             values=["trade_date", "ticker_major", "return_c_major"],
         )
         adj_market_data = self.load_mkt(bgn_date=win_start_date, stp_date=stp_date)
-        adj_data = self.merge_xy(x_data=adj_major_data[["ticker_major", __y_ret]], y_data=adj_market_data[[__x_ret]])
+        adj_data = self.merge_xy(
+            x_data=adj_major_data[["trade_date", "ticker_major", __y_ret]],
+            y_data=adj_market_data[["trade_date", __x_ret]]
+        )
         self.betas_from_wins(self.cfg.wins, adj_data, __x_ret, __y_ret)
         self.res_from_wins(self.cfg.wins, adj_data, __x_ret, __y_ret)
         self.res_std_from_wins(self.cfg.wins, adj_data)
@@ -274,7 +278,10 @@ class CFactorS1BETA(__CFactorBETA):
             values=["trade_date", "ticker_major", "return_c_major"],
         )
         adj_market_data = self.load_mkt(bgn_date=win_start_date, stp_date=stp_date)
-        adj_data = self.merge_xy(x_data=adj_major_data[["ticker_major", __y_ret]], y_data=adj_market_data[[__x_ret]])
+        adj_data = self.merge_xy(
+            x_data=adj_major_data[["trade_date", "ticker_major", __y_ret]],
+            y_data=adj_market_data[["trade_date", __x_ret]]
+        )
         self.betas_from_wins(self.cfg.wins, adj_data, __x_ret, __y_ret)
         self.res_from_wins(self.cfg.wins, adj_data, __x_ret, __y_ret)
         self.res_std_from_wins(self.cfg.wins, adj_data)
@@ -298,7 +305,10 @@ class CFactorCBETA(__CFactorBETA):
             values=["trade_date", "ticker_major", "return_c_major"],
         )
         adj_forex_data = self.load_forex(bgn_date=win_start_date, stp_date=stp_date)
-        adj_data = self.merge_xy(x_data=adj_major_data[["ticker_major", __y_ret]], y_data=adj_forex_data[[__x_ret]])
+        adj_data = self.merge_xy(
+            x_data=adj_major_data[["trade_date", "ticker_major", __y_ret]],
+            y_data=adj_forex_data[["trade_date", __x_ret]]
+        )
         self.betas_from_wins(self.cfg.wins, adj_data, __x_ret, __y_ret)
         self.res_from_wins(self.cfg.wins, adj_data, __x_ret, __y_ret)
         self.res_std_from_wins(self.cfg.wins, adj_data)
@@ -315,14 +325,18 @@ class CFactorIBETA(__CFactorBETA):
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
-        __x_ret, __y_ret = "cpi_rate", "major_return"
+        __x_ret, __y_ret = "cpi_rate", "return_c_major"
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
         adj_major_data = self.load_preprocess(
             instru, bgn_date=win_start_date, stp_date=stp_date,
             values=["trade_date", "ticker_major", "return_c_major"],
         )
         adj_macro_data = self.load_macro(bgn_date=win_start_date, stp_date=stp_date)
-        adj_data = self.merge_xy(x_data=adj_major_data[["ticker", __y_ret]], y_data=adj_macro_data[[__x_ret]])
+        adj_macro_data[__x_ret] = adj_macro_data[__x_ret] / 100
+        adj_data = self.merge_xy(
+            x_data=adj_major_data[["trade_date", "ticker_major", __y_ret]],
+            y_data=adj_macro_data[["trade_date", __x_ret]]
+        )
         self.betas_from_wins(self.cfg.wins, adj_data, __x_ret, __y_ret)
         self.res_from_wins(self.cfg.wins, adj_data, __x_ret, __y_ret)
         self.res_std_from_wins(self.cfg.wins, adj_data)
@@ -339,14 +353,18 @@ class CFactorPBETA(__CFactorBETA):
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
-        __x_ret, __y_ret = "ppi_rate", "major_return"
+        __x_ret, __y_ret = "ppi_rate", "return_c_major"
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
         adj_major_data = self.load_preprocess(
             instru, bgn_date=win_start_date, stp_date=stp_date,
             values=["trade_date", "ticker_major", "return_c_major"],
         )
         adj_macro_data = self.load_macro(bgn_date=win_start_date, stp_date=stp_date)
-        adj_data = self.merge_xy(x_data=adj_major_data[["ticker", __y_ret]], y_data=adj_macro_data[[__x_ret]])
+        adj_macro_data[__x_ret] = adj_macro_data[__x_ret] / 100
+        adj_data = self.merge_xy(
+            x_data=adj_major_data[["trade_date", "ticker_major", __y_ret]],
+            y_data=adj_macro_data[["trade_date", __x_ret]]
+        )
         self.betas_from_wins(self.cfg.wins, adj_data, __x_ret, __y_ret)
         self.res_from_wins(self.cfg.wins, adj_data, __x_ret, __y_ret)
         self.res_std_from_wins(self.cfg.wins, adj_data)
@@ -530,7 +548,7 @@ class CFactorCSR(__CFactorCXY):
             values=["trade_date", "ticker_major", "return_c_major", "oi", "vol", "closeI"],
         )
         adj_data["sigma"] = adj_data["return_c_major"].fillna(0).rolling(window=__near_short_term).std()
-        x, y = "sigma", "major_return"
+        x, y = "sigma", "return_c_major"
         self.cal_rolling_top_corr(
             adj_data,
             bgn_date=bgn_date, stp_date=stp_date,

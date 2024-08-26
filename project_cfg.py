@@ -76,12 +76,12 @@ with open(proj_cfg.db_struct_path, "r") as f:
 db_struct_cfg = CDbStructCfg(
     # --- shared database
     macro=CDbStruct(
-        db_save_dir=proj_cfg.root_dir,
+        db_save_dir=proj_cfg.alternative_dir,
         db_name=_db_struct["macro"]["db_name"],
         table=CSqlTable(cfg=_db_struct["macro"]["table"]),
     ),
     forex=CDbStruct(
-        db_save_dir=proj_cfg.root_dir,
+        db_save_dir=proj_cfg.alternative_dir,
         db_name=_db_struct["forex"]["db_name"],
         table=CSqlTable(cfg=_db_struct["forex"]["table"]),
     ),

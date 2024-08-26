@@ -98,6 +98,10 @@ class CCfgFactor:
     def factor_names(self) -> TFactorNames:
         raise NotImplementedError
 
+    @property
+    def factor_names_neu(self) -> TFactorNames:
+        return [_.replace("RAW", "NEU") for _ in self.factor_names]
+
     def get_raw_class_and_names(self) -> TFactorClassAndNames:
         return self.factor_class, self.factor_names
 

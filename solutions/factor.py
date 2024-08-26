@@ -45,8 +45,8 @@ class CFactorGeneric:
         return factor_data
 
     @staticmethod
-    def rename_ticker(data: pd.DataFrame, old_ticker_name: str = "ticker_major") -> None:
-        data.rename(columns={old_ticker_name: "ticker"}, inplace=True)
+    def rename_ticker(data: pd.DataFrame, old_name: str = "ticker_major") -> None:
+        data.rename(columns={old_name: "ticker"}, inplace=True)
 
 
 class CFactorRaw(CFactorGeneric):

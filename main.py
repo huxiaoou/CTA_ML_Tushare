@@ -108,12 +108,32 @@ if __name__ == "__main__":
     elif args.switch == "factor":
         from project_cfg import cfg_factors
 
-        fac = None
-        if args.fclass == "MTM":
+        fac, fclass = None, args.fclass
+        if fclass == "MTM":
             from solutions.factorAlg import CFactorMTM
 
             if (cfg := cfg_factors.MTM) is not None:
                 fac = CFactorMTM(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
+        elif fclass == "SKEW":
+            from solutions.factorAlg import CFactorSKEW
+
+            if (cfg := cfg_factors.SKEW) is not None:
+                fac = CFactorSKEW(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
+        elif fclass == "RS":
+            from solutions.factorAlg import CFactorRS
+
+            if (cfg := cfg_factors.RS) is not None:
+                fac = CFactorRS(
                     cfg=cfg,
                     factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
                     universe=proj_cfg.universe,

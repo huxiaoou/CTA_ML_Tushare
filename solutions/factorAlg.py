@@ -123,16 +123,16 @@ class CFactorRS(CFactorRaw):
         )
         adj_data["stock"] = adj_data["stock"].ffill(limit=__min_win).fillna(0)
         for win in self.cfg.wins:
-            rspa = f"{self.factor_class}PA{win:03d}"
-            rsla = f"{self.factor_class}LA{win:03d}"
+            rspa = f"{self.factor_class}PA{win:03d}_RAW"
+            rsla = f"{self.factor_class}LA{win:03d}_RAW"
 
-            ma = adj_data["in_stock"].rolling(window=win).mean()
-            s = adj_data["in_stock"] / ma
+            ma = adj_data["stock"].rolling(window=win).mean()
+            s = adj_data["stock"] / ma
             s[s == np.inf] = np.nan  # some maybe resulted from divided by Zero
             adj_data[rspa] = 1 - s
 
-            la = adj_data["in_stock"].shift(win)
-            s = adj_data["in_stock"] / la
+            la = adj_data["stock"].shift(win)
+            s = adj_data["stock"] / la
             s[s == np.inf] = np.nan  # some maybe resulted from divided by Zero
             adj_data[rsla] = 1 - s
         self.rename_ticker(adj_data)

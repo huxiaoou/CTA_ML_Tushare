@@ -214,6 +214,66 @@ if __name__ == "__main__":
                     db_struct_preprocess=db_struct_cfg.preprocess,
                     db_struct_macro=db_struct_cfg.macro,
                 )
+        elif fclass == "CTP":
+            from solutions.factorAlg import CFactorCTP
+
+            if (cfg := cfg_factors.CTP) is not None:
+                fac = CFactorCTP(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
+        elif fclass == "CTR":
+            from solutions.factorAlg import CFactorCTR
+
+            if (cfg := cfg_factors.CTR) is not None:
+                fac = CFactorCTR(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
+        elif fclass == "CVP":
+            from solutions.factorAlg import CFactorCVP
+
+            if (cfg := cfg_factors.CVP) is not None:
+                fac = CFactorCVP(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
+        elif fclass == "CVR":
+            from solutions.factorAlg import CFactorCVR
+
+            if (cfg := cfg_factors.CVR) is not None:
+                fac = CFactorCVR(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
+        elif fclass == "CSP":
+            from solutions.factorAlg import CFactorCSP
+
+            if (cfg := cfg_factors.CSP) is not None:
+                fac = CFactorCSP(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
+        elif fclass == "CSR":
+            from solutions.factorAlg import CFactorCSR
+
+            if (cfg := cfg_factors.CSR) is not None:
+                fac = CFactorCSR(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
         else:
             raise NotImplementedError(f"fclass = {args.fclass}")
 

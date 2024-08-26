@@ -289,7 +289,7 @@ class CCfgFactorCTP(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}" for w, t in ittl.product(self.wins, self.tops)]
+        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}_RAW" for w, t in ittl.product(self.wins, self.tops)]
         return n0
 
 
@@ -304,7 +304,7 @@ class CCfgFactorCTR(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}" for w, t in ittl.product(self.wins, self.tops)]
+        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}_RAW" for w, t in ittl.product(self.wins, self.tops)]
         return n0
 
 
@@ -319,7 +319,7 @@ class CCfgFactorCVP(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}" for w, t in ittl.product(self.wins, self.tops)]
+        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}_RAW" for w, t in ittl.product(self.wins, self.tops)]
         return n0
 
 
@@ -334,7 +334,7 @@ class CCfgFactorCVR(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}" for w, t in ittl.product(self.wins, self.tops)]
+        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}_RAW" for w, t in ittl.product(self.wins, self.tops)]
         return n0
 
 
@@ -349,7 +349,7 @@ class CCfgFactorCSP(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}" for w, t in ittl.product(self.wins, self.tops)]
+        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}_RAW" for w, t in ittl.product(self.wins, self.tops)]
         return n0
 
 
@@ -364,7 +364,7 @@ class CCfgFactorCSR(CCfgFactor):
 
     @property
     def factor_names(self) -> TFactorNames:
-        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}" for w, t in ittl.product(self.wins, self.tops)]
+        n0 = [f"{self.factor_class}{w:03d}T{int(t * 10):02d}_RAW" for w, t in ittl.product(self.wins, self.tops)]
         return n0
 
 

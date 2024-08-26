@@ -383,7 +383,7 @@ class __CFactorCXY(CFactorRaw):
             sort_var: str,
     ):
         for win, top in ittl.product(wins, tops):
-            factor_name = f"{self.factor_class}{win:03d}T{int(top * 10):02d}"
+            factor_name = f"{self.factor_class}{win:03d}T{int(top * 10):02d}_RAW"
             top_size = int(win * top) + 1
             r_data = {}
             for i, trade_date in enumerate(raw_data.index):
@@ -405,21 +405,23 @@ class CFactorCTP(__CFactorCXY):
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
-        win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
+        win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins + [2]), -5)
         adj_data = self.load_preprocess(
             instru, bgn_date=win_start_date, stp_date=stp_date,
-            values=["trade_date", "ticker_major", "return_c_major", "oi", "vol", "closeI"],
+            values=["trade_date", "ticker_major", "return_c_major", "oi_major", "vol_major", "closeI"],
         )
-        adj_data["aver_oi"] = adj_data["oi"].rolling(window=2).mean()
-        adj_data["turnover"] = adj_data["vol"] / adj_data["aver_oi"]
+        adj_data = adj_data.set_index("trade_date")
+        adj_data["aver_oi"] = adj_data["oi_major"].rolling(window=2).mean()
+        adj_data["turnover"] = adj_data["vol_major"] / adj_data["aver_oi"]
         x, y = "turnover", "closeI"
         self.cal_rolling_top_corr(
             adj_data,
             bgn_date=bgn_date, stp_date=stp_date,
             x=x, y=y,
             wins=self.cfg.wins, tops=self.cfg.tops,
-            sort_var="vol",
+            sort_var="vol_major",
         )
+        adj_data = adj_data.reset_index()
         self.rename_ticker(adj_data)
         factor_data = self.get_factor_data(adj_data, bgn_date=bgn_date)
         return factor_data
@@ -433,21 +435,23 @@ class CFactorCTR(__CFactorCXY):
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
-        win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
+        win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins + [2]), -5)
         adj_data = self.load_preprocess(
             instru, bgn_date=win_start_date, stp_date=stp_date,
-            values=["trade_date", "ticker_major", "return_c_major", "oi", "vol", "closeI"],
+            values=["trade_date", "ticker_major", "return_c_major", "oi_major", "vol_major", "closeI"],
         )
-        adj_data["aver_oi"] = adj_data["oi"].rolling(window=2).mean()
-        adj_data["turnover"] = adj_data["vol"] / adj_data["aver_oi"]
+        adj_data = adj_data.set_index("trade_date")
+        adj_data["aver_oi"] = adj_data["oi_major"].rolling(window=2).mean()
+        adj_data["turnover"] = adj_data["vol_major"] / adj_data["aver_oi"]
         x, y = "turnover", "return_c_major"
         self.cal_rolling_top_corr(
             adj_data,
             bgn_date=bgn_date, stp_date=stp_date,
             x=x, y=y,
             wins=self.cfg.wins, tops=self.cfg.tops,
-            sort_var="vol",
+            sort_var="vol_major",
         )
+        adj_data = adj_data.reset_index()
         self.rename_ticker(adj_data)
         factor_data = self.get_factor_data(adj_data, bgn_date=bgn_date)
         return factor_data
@@ -464,16 +468,18 @@ class CFactorCVP(__CFactorCXY):
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
         adj_data = self.load_preprocess(
             instru, bgn_date=win_start_date, stp_date=stp_date,
-            values=["trade_date", "ticker_major", "return_c_major", "oi", "vol", "closeI"],
+            values=["trade_date", "ticker_major", "return_c_major", "vol_major", "closeI"],
         )
-        x, y = "vol", "closeI"
+        adj_data = adj_data.set_index("trade_date")
+        x, y = "vol_major", "closeI"
         self.cal_rolling_top_corr(
             adj_data,
             bgn_date=bgn_date, stp_date=stp_date,
             x=x, y=y,
             wins=self.cfg.wins, tops=self.cfg.tops,
-            sort_var="vol",
+            sort_var="vol_major",
         )
+        adj_data = adj_data.reset_index()
         self.rename_ticker(adj_data)
         factor_data = self.get_factor_data(adj_data, bgn_date=bgn_date)
         return factor_data
@@ -490,16 +496,18 @@ class CFactorCVR(__CFactorCXY):
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
         adj_data = self.load_preprocess(
             instru, bgn_date=win_start_date, stp_date=stp_date,
-            values=["trade_date", "ticker_major", "return_c_major", "oi", "vol", "closeI"],
+            values=["trade_date", "ticker_major", "return_c_major", "vol_major", "closeI"],
         )
-        x, y = "vol", "return_c_major"
+        adj_data = adj_data.set_index("trade_date")
+        x, y = "vol_major", "return_c_major"
         self.cal_rolling_top_corr(
             adj_data,
             bgn_date=bgn_date, stp_date=stp_date,
             x=x, y=y,
             wins=self.cfg.wins, tops=self.cfg.tops,
-            sort_var="vol",
+            sort_var="vol_major",
         )
+        adj_data = adj_data.reset_index()
         self.rename_ticker(adj_data)
         factor_data = self.get_factor_data(adj_data, bgn_date=bgn_date)
         return factor_data
@@ -513,12 +521,13 @@ class CFactorCSP(__CFactorCXY):
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
-        __near_short_term = 20
-        win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
+        __near_short_term = 10
+        win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins + [__near_short_term]), -5)
         adj_data = self.load_preprocess(
             instru, bgn_date=win_start_date, stp_date=stp_date,
-            values=["trade_date", "ticker_major", "return_c_major", "oi", "vol", "closeI"],
+            values=["trade_date", "ticker_major", "return_c_major", "vol_major", "closeI"],
         )
+        adj_data = adj_data.set_index("trade_date")
         adj_data["sigma"] = adj_data["return_c_major"].fillna(0).rolling(window=__near_short_term).std()
         x, y = "sigma", "closeI"
         self.cal_rolling_top_corr(
@@ -526,8 +535,9 @@ class CFactorCSP(__CFactorCXY):
             bgn_date=bgn_date, stp_date=stp_date,
             x=x, y=y,
             wins=self.cfg.wins, tops=self.cfg.tops,
-            sort_var="vol",
+            sort_var="vol_major",
         )
+        adj_data = adj_data.reset_index()
         self.rename_ticker(adj_data)
         factor_data = self.get_factor_data(adj_data, bgn_date=bgn_date)
         return factor_data
@@ -541,12 +551,13 @@ class CFactorCSR(__CFactorCXY):
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
-        __near_short_term = 20
-        win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
+        __near_short_term = 10
+        win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins + [__near_short_term]), -5)
         adj_data = self.load_preprocess(
             instru, bgn_date=win_start_date, stp_date=stp_date,
-            values=["trade_date", "ticker_major", "return_c_major", "oi", "vol", "closeI"],
+            values=["trade_date", "ticker_major", "return_c_major", "vol_major", "closeI"],
         )
+        adj_data = adj_data.set_index("trade_date")
         adj_data["sigma"] = adj_data["return_c_major"].fillna(0).rolling(window=__near_short_term).std()
         x, y = "sigma", "return_c_major"
         self.cal_rolling_top_corr(
@@ -554,8 +565,9 @@ class CFactorCSR(__CFactorCXY):
             bgn_date=bgn_date, stp_date=stp_date,
             x=x, y=y,
             wins=self.cfg.wins, tops=self.cfg.tops,
-            sort_var="vol",
+            sort_var="vol_major",
         )
+        adj_data = adj_data.reset_index()
         self.rename_ticker(adj_data)
         factor_data = self.get_factor_data(adj_data, bgn_date=bgn_date)
         return factor_data

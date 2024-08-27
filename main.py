@@ -371,12 +371,13 @@ if __name__ == "__main__":
         if fac is not None:
             from solutions.factor import CFactorNeu
 
-            # fac.main_raw(
-            #     bgn_date=bgn_date, stp_date=stp_date, calendar=calendar,
-            #     call_multiprocess=not args.nomp, processes=args.processes,
-            # )
+            # --- raw factors
+            fac.main_raw(
+                bgn_date=bgn_date, stp_date=stp_date, calendar=calendar,
+                call_multiprocess=not args.nomp, processes=args.processes,
+            )
 
-            # Neutralization
+            # --- Neutralization
             neutralizer = CFactorNeu(
                 ref_factor=fac,
                 universe=proj_cfg.universe,

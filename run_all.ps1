@@ -30,3 +30,7 @@ python main.py --bgn $bgn_date --stp $stp_date factor --fclass CVP
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass CVR
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass CSP
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass CSR
+python main.py --bgn $bgn_date --stp $stp_date factor --fclass NOI
+python main.py --bgn $bgn_date --stp $stp_date factor --fclass NDOI
+python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNOI
+python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNDOI

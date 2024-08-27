@@ -1,3 +1,4 @@
+import numpy as np
 import pandas as pd
 import scipy.stats as sps
 import multiprocessing as mp
@@ -24,6 +25,7 @@ class CFactorGeneric:
             mode="r",
         )
         factor_data = sqldb.read_by_range(bgn_date, stp_date)
+        factor_data[self.factor_names] = factor_data[self.factor_names].astype(np.float64).fillna(np.nan)
         return factor_data
 
     def save_by_instru(self, factor_data: pd.DataFrame, instru: str, calendar: CCalendar):
@@ -156,7 +158,7 @@ class CFactorRaw(CFactorGeneric):
         return 0
 
     # @qtimer
-    def main(self, bgn_date: str, stp_date: str, calendar: CCalendar, call_multiprocess: bool, processes: int):
+    def main_raw(self, bgn_date: str, stp_date: str, calendar: CCalendar, call_multiprocess: bool, processes: int):
         description = f"Calculating factor {SFG(self.factor_class)}"
         if call_multiprocess:
             with Progress() as pb:
@@ -196,7 +198,7 @@ class CFactorNeu(CFactorGeneric):
         self.db_struct_preprocess = db_struct_preprocess
         self.db_struct_avlb = db_struct_avlb
         super().__init__(
-            factor_class=self.ref_factor.factor_class.replace("RAW", "NEU"),
+            factor_class=self.ref_factor.factor_class,
             factor_names=[z.replace("RAW", "NEU") for z in self.ref_factor.factor_names],
             save_by_instru_dir=neutral_by_instru_dir,
         )
@@ -301,7 +303,7 @@ class CFactorNeu(CFactorGeneric):
         return 0
 
     @qtimer
-    def main_neutralize(
+    def main_neu(
             self,
             bgn_date: str,
             stp_date: str,
@@ -318,20 +320,24 @@ class CFactorNeu(CFactorGeneric):
             how="left",
         ).sort_values(by=["trade_date", "sectorL1"])
         neu_factor_data = self.neutralize_by_date(net_ref_factor_data)
+
+        # save by instrument
+        desc = f"Neutralizing {SFG(self.factor_class)} by instrument"
+        grouped_data = neu_factor_data.groupby(by="instrument")
         if call_multiprocess:
-            with mp.get_context("spawn").Pool(processes) as pool:
-                for instru, instru_neu_factor_data in neu_factor_data.groupby(by="instrument"):
-                    pool.apply_async(
-                        self.process_by_instru,
-                        args=(instru, instru_neu_factor_data, bgn_date, stp_date, calendar),
-                        error_callback=error_handler,
-                    )
-                pool.close()
-                pool.join()
+            with Progress() as pb:
+                main_task = pb.add_task(description=desc, total=len(grouped_data))
+                with mp.get_context("spawn").Pool(processes) as pool:
+                    for instru, instru_neu_factor_data in grouped_data:
+                        pool.apply_async(
+                            self.process_by_instru,
+                            args=(instru, instru_neu_factor_data, bgn_date, stp_date, calendar),
+                            callback=lambda _: pb.update(main_task, advance=1),
+                            error_callback=error_handler,
+                        )
+                    pool.close()
+                    pool.join()
         else:
-            for instru, instru_neu_factor_data in track(
-                    neu_factor_data.groupby(by="instrument"),
-                    description="Neutralizing raw factors",
-            ):
+            for instru, instru_neu_factor_data in track(grouped_data, description=desc):
                 self.process_by_instru(instru, instru_neu_factor_data, bgn_date, stp_date, calendar)  # type:ignore
         return 0

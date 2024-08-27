@@ -369,27 +369,25 @@ if __name__ == "__main__":
             raise NotImplementedError(f"fclass = {args.fclass}")
 
         if fac is not None:
-            fac.main(
-                bgn_date=bgn_date, stp_date=stp_date,
-                calendar=calendar,
+            from solutions.factor import CFactorNeu
+
+            # fac.main_raw(
+            #     bgn_date=bgn_date, stp_date=stp_date, calendar=calendar,
+            #     call_multiprocess=not args.nomp, processes=args.processes,
+            # )
+
+            # Neutralization
+            neutralizer = CFactorNeu(
+                ref_factor=fac,
+                universe=proj_cfg.universe,
+                db_struct_preprocess=db_struct_cfg.preprocess,
+                db_struct_avlb=db_struct_cfg.available,
+                neutral_by_instru_dir=proj_cfg.neutral_by_instru_dir,
+            )
+            neutralizer.main_neu(
+                bgn_date=bgn_date, stp_date=stp_date, calendar=calendar,
                 call_multiprocess=not args.nomp, processes=args.processes,
             )
-
-            # # Neutralization
-            # neutralizer = CFactorNeu(
-            #     ref_factor=fac,
-            #     universe=cfg_strategy.universe,
-            #     major_dir=cfg_path.major_dir,
-            #     available_dir=cfg_path.available_dir,
-            #     neutral_by_instru_dir=cfg_path.neutral_by_instru_dir,
-            # )
-            # neutralizer.main_neutralize(
-            #     bgn_date=args.bgn,
-            #     end_date=args.end or args.bgn,
-            #     calendar=calendar,
-            #     call_multiprocess=not args.nomp,
-            #     processes=PROCESSES,
-            # )
 
     else:
         raise ValueError(f"args.switch = {args.switch} is illegal")

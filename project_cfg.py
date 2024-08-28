@@ -1,7 +1,7 @@
 import os
 import yaml
-from typedef import TUniverse, CCfgInstru, CCfgAvlbUnvrs, CCfgConst
-from typedef import CProCfg, CDbStructCfg
+from typedef import TUniverse, CCfgInstru, CCfgAvlbUnvrs, CCfgConst, CCfgFeatSlc, CCfgTrn
+from typedef import CCfgProj, CCfgDbStruct
 from typedef import (
     CCfgFactors,
     CCfgFactorMTM,
@@ -29,6 +29,7 @@ from typedef import (
     CCfgFactorSMT,
     CCfgFactorRWTC,
 )
+from typedef import TFactorsPool
 from husfort.qsqlite import CDbStruct, CSqlTable
 
 # ---------- project configuration ----------
@@ -38,7 +39,7 @@ with open("config.yaml", "r") as f:
 
 universe: TUniverse = {k: CCfgInstru(**v) for k, v in _config["universe"].items()}
 
-proj_cfg = CProCfg(
+proj_cfg = CCfgProj(
     # --- shared
     calendar_path=_config["path"]["calendar_path"],
     root_dir=_config["path"]["root_dir"],
@@ -61,19 +62,24 @@ proj_cfg = CProCfg(
     neutral_by_instru_dir=os.path.join(  # type:ignore
         _config["path"]["project_root_dir"], _config["path"]["neutral_by_instru_dir"]
     ),
+    feature_selection_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["feature_selection_dir"]
+    ),
 
     universe=universe,
     avlb_unvrs=CCfgAvlbUnvrs(**_config["available"]),
     mkt_idxes=_config["mkt_idxes"],
     const=CCfgConst(**_config["CONST"]),
     factors=_config["factors"],
+    trn=CCfgTrn(**_config["trn"]),
+    feat_slc=CCfgFeatSlc(**_config["feature_selection"]),
 )
 
 # ---------- databases structure ----------
 with open(proj_cfg.db_struct_path, "r") as f:
     _db_struct = yaml.safe_load(f)
 
-db_struct_cfg = CDbStructCfg(
+db_struct_cfg = CCfgDbStruct(
     # --- shared database
     macro=CDbStruct(
         db_save_dir=proj_cfg.alternative_dir,
@@ -152,9 +158,19 @@ cfg_factors = CCfgFactors(
     RWTC=None,  # CCfgFactorRWTC(**proj_cfg.factors["RWTC"]),
 )
 
+factors_pool_raw: TFactorsPool = []
+factors_pool_neu: TFactorsPool = []
+for cfg_factor in cfg_factors.values():
+    factors_pool_raw.extend(cfg_factor.get_combs_raw(proj_cfg.factors_by_instru_dir))
+    factors_pool_neu.extend(cfg_factor.get_combs_neu(proj_cfg.neutral_by_instru_dir))
+
 if __name__ == "__main__":
     print(f"Size of universe = {len(universe)}")
     print("databases structures:")
     print(db_struct_cfg)
     print("project_configuration:")
     print(proj_cfg)
+    print("factors pool raw")
+    print(factors_pool_raw)
+    print("factors pool neu")
+    print(factors_pool_neu)

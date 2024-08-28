@@ -16,6 +16,7 @@ path:
   test_return_dir: test_return
   factors_by_instru_dir: factors_by_instru
   neutral_by_instru_dir: neutral_by_instru
+  feature_selection_dir: feature_selection
 
 
 mkt_idxes:
@@ -183,6 +184,11 @@ universe:
 available:
   win: 5
   amount_threshold: 50000.00 # unit = WANYUAN, >= 50000 WANYUAN, or 500 million
+trn:
+  wins: [ 60, 120, 240, 480, 720 ]
+feature_selection:
+  mut_info_threshold: 0.05
+  min_feats: 5
 
 # ------- database structure -------
 
@@ -217,6 +223,7 @@ db_struct:
         INH0100_NHF: REAL
         I881001_WI: REAL
 
+
 # ------- const -------
 CONST:
   COST: 0.0003
@@ -224,8 +231,8 @@ CONST:
   WIN: 10
   LAG: 1
   SHIFT: 11
-  RET_CLASS: "010L1-NEU"
-  RET_NAMES: [ "CloseRtn010L1-NEU", "OpenRtn010L1-NEU" ]
+  RET_CLASS: "010L1NEU"
+  RET_NAMES: [ "ClsRtn010L1NEU", "OpnRtn010L1NEU" ]
   MAW: 10
 
 # ------- factors -------

@@ -39,6 +39,9 @@ def parse_args():
                  "AMP", "EXR", "SMT", "RWTC"),
     )
 
+    # switch: test return
+    arg_parser_sub = arg_parser_subs.add_parser(name="feature_selection", help="Select features")
+
     return arg_parser.parse_args()
 
 
@@ -389,6 +392,30 @@ if __name__ == "__main__":
                 bgn_date=bgn_date, stp_date=stp_date, calendar=calendar,
                 call_multiprocess=not args.nomp, processes=args.processes,
             )
+    elif args.switch == "feature_selection":
+        from typedef import CRet
+        from solutions.feature_selection import main_feature_selection, get_feature_selection_tests
+        from project_cfg import factors_pool_neu
 
+        rets = [
+            CRet(ret_class=proj_cfg.const.RET_CLASS, ret_name=n, shift=proj_cfg.const.SHIFT)
+            for n in proj_cfg.const.RET_NAMES
+        ]
+        tests = get_feature_selection_tests(
+            trn_wins=proj_cfg.trn.wins,
+            sectors=proj_cfg.const.SECTORS,
+            rets=rets,
+        )
+        main_feature_selection(
+            threshold=proj_cfg.feat_slc.mut_info_threshold,
+            min_feats=proj_cfg.feat_slc.min_feats,
+            tests=tests,
+            feat_slc_save_root_dir=proj_cfg.feature_selection_dir,
+            tst_ret_save_root_dir=proj_cfg.test_return_dir,
+            db_struct_avlb=db_struct_cfg.available,
+            facs_pool=factors_pool_neu,
+            bgn_date=bgn_date, stp_date=stp_date, calendar=calendar,
+            call_multiprocess=not args.nomp, processes=args.processes,
+        )
     else:
         raise ValueError(f"args.switch = {args.switch} is illegal")

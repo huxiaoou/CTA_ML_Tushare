@@ -1,6 +1,6 @@
 import os
 from husfort.qsqlite import CDbStruct, CSqlTable, CSqlVar
-from typedef import TFactorClass, TFactorNames
+from typedef import TFactorClass, TFactorNames, CTestFtSlc
 
 
 def convert_mkt_idx(mkt_idx: str, prefix: str = "I") -> str:
@@ -27,5 +27,21 @@ def gen_fac_db(instru: str, db_save_root_dir: str, factor_class: TFactorClass, f
             name="factor",
             primary_keys=[CSqlVar("trade_date", "TEXT")],
             value_columns=[CSqlVar("ticker", "TEXT")] + [CSqlVar(fn, "REAL") for fn in factor_names],
+        )
+    )
+
+
+def gen_feat_slc_db(test: CTestFtSlc, db_save_root_dir: str) -> CDbStruct:
+    return CDbStruct(
+        db_save_dir=os.path.join(db_save_root_dir, test.save_id),
+        db_name=f"{test.sector}.db",
+        table=CSqlTable(
+            name="factor",
+            primary_keys=[
+                CSqlVar("trade_date", "TEXT"),
+                CSqlVar("factor_class", "TEXT"),
+                CSqlVar("factor_name", "TEXT"),
+            ],
+            value_columns=[CSqlVar("is_neu", "INTEGER")],
         )
     )

@@ -21,6 +21,17 @@ class CCfgAvlbUnvrs:
 
 
 @dataclass(frozen=True)
+class CCfgTrn:
+    wins: list[int]
+
+
+@dataclass(frozen=True)
+class CCfgFeatSlc:
+    mut_info_threshold: float
+    min_feats: int
+
+
+@dataclass(frozen=True)
 class CCfgConst:
     COST: float
     SECTORS: list[str]
@@ -33,7 +44,7 @@ class CCfgConst:
 
 
 @dataclass(frozen=True)
-class CProCfg:
+class CCfgProj:
     # --- shared
     calendar_path: str
     root_dir: str
@@ -50,6 +61,7 @@ class CProCfg:
     test_return_dir: str
     factors_by_instru_dir: str
     neutral_by_instru_dir: str
+    feature_selection_dir: str
 
     # --- project parameters
     universe: TUniverse
@@ -57,10 +69,12 @@ class CProCfg:
     mkt_idxes: dict
     const: CCfgConst
     factors: dict
+    trn: CCfgTrn
+    feat_slc: CCfgFeatSlc
 
 
 @dataclass(frozen=True)
-class CDbStructCfg:
+class CCfgDbStruct:
     # --- shared database
     macro: CDbStruct
     forex: CDbStruct
@@ -86,6 +100,8 @@ TFactorName = str
 TFactorNames = list[TFactorName]
 TFactorClassAndNames = tuple[TFactorClass, TFactorNames]
 TFactorComb = tuple[TFactorClass, TFactorNames, str]
+TFactor = tuple[TFactorClass, TFactorName]
+TFactorsPool = list[TFactorComb]
 
 
 @dataclass(frozen=True)
@@ -109,16 +125,16 @@ class CCfgFactor:
         neu_names = [_.replace("RAW", "NEU") for _ in self.factor_names]
         return self.factor_class, neu_names
 
-    def get_combs_raw(self) -> list[TFactorComb]:
+    def get_combs_raw(self, sub_dir: str) -> TFactorsPool:
         factor_class, factor_names = self.get_raw_class_and_names()
-        return [(factor_class, factor_names, "factors_by_instru")]
+        return [(factor_class, factor_names, sub_dir)]
 
-    def get_combs_neu(self) -> list[TFactorComb]:
+    def get_combs_neu(self, sub_dir: str) -> TFactorsPool:
         factor_class, factor_names = self.get_neu_class_and_names()
-        return [(factor_class, factor_names, "neutral_by_instru")]
+        return [(factor_class, factor_names, sub_dir)]
 
-    def get_combs(self) -> list[TFactorComb]:
-        return self.get_combs_raw() + self.get_combs_neu()
+    def get_combs(self, sub_dir: str) -> TFactorsPool:
+        return self.get_combs_raw(sub_dir) + self.get_combs_neu(sub_dir)
 
 
 # cfg for factors
@@ -536,3 +552,33 @@ class CCfgFactors:
             if v is not None:
                 res.append(v)
         return res
+
+
+# --- feature selection ---
+TReturnClass = str
+TReturnName = str
+TReturnNames = list[TReturnName]
+TReturnComb = tuple[TReturnClass, TReturnName, str]
+TReturn = tuple[TReturnClass, TReturnName]
+
+
+@dataclass(frozen=True)
+class CRet:
+    ret_class: TReturnClass
+    ret_name: TReturnName
+    shift: int
+
+    @property
+    def desc(self) -> str:
+        return f"{self.ret_class}.{self.ret_name}"
+
+
+@dataclass(frozen=True)
+class CTestFtSlc:
+    trn_win: int
+    sector: str
+    ret: CRet
+
+    @property
+    def save_id(self) -> str:
+        return f"{self.ret.ret_name}-W{self.trn_win:03d}"

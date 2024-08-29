@@ -1,4 +1,5 @@
 $bgn_date = "20120104"
+$bgn_date_ml = "20170201"
 $stp_date = "20240826"
 
 # ------------------------
@@ -34,3 +35,6 @@ python main.py --bgn $bgn_date --stp $stp_date factor --fclass NOI
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass NDOI
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNOI
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNDOI
+
+python main.py --bgn $bgn_date_ml --stp $stp_date --processes 4 feature_selection
+python main.py --bgn $bgn_date_ml --stp $stp_date mclrn --type parse

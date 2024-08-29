@@ -1,3 +1,4 @@
+import os
 import itertools as ittl
 from dataclasses import dataclass
 from husfort.qsqlite import CDbStruct
@@ -62,6 +63,8 @@ class CCfgProj:
     factors_by_instru_dir: str
     neutral_by_instru_dir: str
     feature_selection_dir: str
+    mclrn_dir: str
+    mclrn_cfg_file: str
 
     # --- project parameters
     universe: TUniverse
@@ -71,6 +74,7 @@ class CCfgProj:
     factors: dict
     trn: CCfgTrn
     feat_slc: CCfgFeatSlc
+    mclrn: dict[str, dict]
 
 
 @dataclass(frozen=True)
@@ -582,3 +586,50 @@ class CTestFtSlc:
     @property
     def save_id(self) -> str:
         return f"{self.ret.ret_name}-W{self.trn_win:03d}"
+
+
+# --- machine learning models ---
+@dataclass(frozen=True)
+class CModel:
+    model_type: str
+    model_args: dict
+
+    @property
+    def desc(self) -> str:
+        return f"{self.model_type}"
+
+
+@dataclass(frozen=True)
+class CTest:
+    unique_Id: str
+    trn_win: int
+    sector: str
+    ret: CRet
+    model: CModel
+
+    @property
+    def tw(self) -> str:
+        return f"W{self.trn_win:03d}"
+
+    @property
+    def layers(self) -> list[str]:
+        return [
+            self.ret.ret_class,  # 001L1-NEU
+            self.tw,  # W060
+            self.model.desc,  # Ridge
+            self.sector,  # AGR
+            self.unique_Id,  # M0005
+            self.ret.ret_name,  # CloseRtn001L1
+        ]
+
+    @property
+    def prefix(self) -> list[str]:
+        return self.layers[:-1]
+
+    @property
+    def save_tag_mdl(self) -> str:
+        return ".".join(self.layers)
+
+    @property
+    def save_tag_prd(self) -> str:
+        return os.path.join(*self.prefix)

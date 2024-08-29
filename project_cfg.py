@@ -65,6 +65,10 @@ proj_cfg = CCfgProj(
     feature_selection_dir=os.path.join(  # type:ignore
         _config["path"]["project_root_dir"], _config["path"]["feature_selection_dir"]
     ),
+    mclrn_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["mclrn_dir"],
+    ),
+    mclrn_cfg_file=_config["path"]["mclrn_cfg_file"],
 
     universe=universe,
     avlb_unvrs=CCfgAvlbUnvrs(**_config["available"]),
@@ -73,6 +77,7 @@ proj_cfg = CCfgProj(
     factors=_config["factors"],
     trn=CCfgTrn(**_config["trn"]),
     feat_slc=CCfgFeatSlc(**_config["feature_selection"]),
+    mclrn=_config["mclrn"],
 )
 
 # ---------- databases structure ----------

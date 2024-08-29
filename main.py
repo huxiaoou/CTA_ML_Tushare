@@ -44,6 +44,10 @@ def parse_args():
     # switch: test return
     arg_parser_sub = arg_parser_subs.add_parser(name="feature_selection", help="Select features")
 
+    # switch: test return
+    arg_parser_sub = arg_parser_subs.add_parser(name="mclrn", help="machine learning functions")
+    arg_parser_sub.add_argument("--type", type=str, choices=("parse", "trn"))
+
     return arg_parser.parse_args()
 
 
@@ -421,5 +425,21 @@ if __name__ == "__main__":
             call_multiprocess=not args.nomp, processes=args.processes,
             verbose=args.verbose,
         )
+    elif args.switch == "mclrn":
+        if args.type == "parse":
+            from solutions.mclrn_mdl_parser import parse_model_configs
+
+            parse_model_configs(
+                models=proj_cfg.mclrn,
+                ret_class=proj_cfg.const.RET_CLASS,
+                ret_names=proj_cfg.const.RET_NAMES,
+                shift=proj_cfg.const.SHIFT,
+                sectors=proj_cfg.const.SECTORS,
+                trn_wins=proj_cfg.trn.wins,
+                cfg_mdl_dir=proj_cfg.mclrn_dir,
+                cfg_mdl_file=proj_cfg.mclrn_cfg_file,
+            )
+        elif args.type == "trn":
+            pass
     else:
         raise ValueError(f"args.switch = {args.switch} is illegal")

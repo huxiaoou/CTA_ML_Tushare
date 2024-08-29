@@ -36,7 +36,7 @@ def gen_feat_slc_db(test: CTestFtSlc, db_save_root_dir: str) -> CDbStruct:
         db_save_dir=os.path.join(db_save_root_dir, test.save_id),
         db_name=f"{test.sector}.db",
         table=CSqlTable(
-            name="factor",
+            name="feature_selection",
             primary_keys=[
                 CSqlVar("trade_date", "TEXT"),
                 CSqlVar("factor_class", "TEXT"),

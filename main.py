@@ -9,6 +9,8 @@ def parse_args():
                             help="not using multiprocess, for debug. Works only when switch in (factor,)")
     arg_parser.add_argument("--processes", type=int, default=None,
                             help="number of processes to be called, effective only when nomp = False")
+    arg_parser.add_argument("--verbose", default=False, action="store_true",
+                            help="whether to print more details, effective only when sub function = (feature_selection,)")
 
     arg_parser_subs = arg_parser.add_subparsers(
         title="Position argument to call sub functions",
@@ -46,7 +48,7 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    from project_cfg import proj_cfg, db_struct_cfg
+    from project_cfg import proj_cfg, db_struct_cfg, universe
     from husfort.qlog import define_logger
     from husfort.qcalendar import CCalendar
 
@@ -413,9 +415,11 @@ if __name__ == "__main__":
             feat_slc_save_root_dir=proj_cfg.feature_selection_dir,
             tst_ret_save_root_dir=proj_cfg.test_return_dir,
             db_struct_avlb=db_struct_cfg.available,
+            universe=universe,
             facs_pool=factors_pool_neu,
             bgn_date=bgn_date, stp_date=stp_date, calendar=calendar,
             call_multiprocess=not args.nomp, processes=args.processes,
+            verbose=args.verbose,
         )
     else:
         raise ValueError(f"args.switch = {args.switch} is illegal")

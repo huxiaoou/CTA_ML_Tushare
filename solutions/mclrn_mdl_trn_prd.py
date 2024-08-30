@@ -188,8 +188,8 @@ class CMclrn:
 
     def fit_estimator(self, x_data: pd.DataFrame, y_data: pd.Series):
         if self.using_instru:
-            x, y = x_data.reset_index(level="instru"), y_data
-            x["instru"] = x["instru"].astype("category")
+            x, y = x_data.reset_index(level="instrument"), y_data
+            x["instrument"] = x["instrument"].astype("category")
         else:
             x, y = x_data.values, y_data.values
         self.fitted_estimator = self.prototype.fit(x, y)
@@ -210,13 +210,13 @@ class CMclrn:
             return True
         else:
             if verbose:
-                print(f"[INF] No model file for {SFY(self.test.save_tag_mdl)} at {SFY(int(month_id))}")
+                logger.info(f"No model file for {SFY(self.test.save_tag_mdl)} at {SFY(int(month_id))}")
             return False
 
     def apply_estimator(self, x_data: pd.DataFrame) -> pd.Series:
         if self.using_instru:
-            x = x_data.reset_index(level="instru")
-            x["instru"] = x["instru"].astype("category")
+            x = x_data.reset_index(level="instrument")
+            x["instrument"] = x["instrument"].astype("category")
         else:
             x = x_data.values
         pred = self.fitted_estimator.predict(X=x)  # type:ignore
@@ -269,7 +269,7 @@ class CMclrn:
             prd_s_date = calendar.get_next_date(prd_e_date, shift=1)
             self.facs_pool = self.get_slc_facs_pool(trade_date=trn_e_date)
             sec_avlb_data_m = self.truncate_data_by_date(sec_avlb_data, prd_b_date, prd_s_date)
-            x_data = self.load_x(prd_b_date, prd_e_date)
+            x_data = self.load_x(prd_b_date, prd_s_date)
             x_data = self.filter_by_sector(x_data, sec_avlb_data_m)
             x_data = self.drop_and_fill_nan(x_data)
             x_data = self.get_X(x_data=x_data)

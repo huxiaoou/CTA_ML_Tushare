@@ -38,3 +38,4 @@ python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNDOI
 
 python main.py --bgn $bgn_date_ml --stp $stp_date --processes 4 feature_selection
 python main.py --bgn $bgn_date_ml --stp $stp_date mclrn --type parse
+python main.py --bgn $bgn_date_ml --stp $stp_date mclrn --type trnprd

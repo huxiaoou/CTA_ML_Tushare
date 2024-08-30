@@ -47,13 +47,13 @@ def gen_feat_slc_db(test: CTestFtSlc, db_save_root_dir: str) -> CDbStruct:
     )
 
 
-def gen_prdct_db(instru: str, db_save_root_dir: str, test: CTest) -> CDbStruct:
+def gen_prdct_db(db_save_root_dir: str, test: CTest) -> CDbStruct:
     return CDbStruct(
-        db_save_dir=os.path.join(db_save_root_dir, test.save_tag_prd),
-        db_name=f"{instru}.db",
+        db_save_dir=db_save_root_dir,
+        db_name=f"{test.save_tag_mdl}.db",
         table=CSqlTable(
             name="factor",
-            primary_keys=[CSqlVar("trade_date", "TEXT")],
-            value_columns=[CSqlVar("ticker", "TEXT"), CSqlVar(test.ret.ret_name, "REAL")],
+            primary_keys=[CSqlVar("trade_date", "TEXT"), CSqlVar("instrument", "TEXT")],
+            value_columns=[CSqlVar(test.ret.ret_name, "REAL")],
         )
     )

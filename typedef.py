@@ -625,13 +625,6 @@ class CTest:
         ]
 
     @property
-    def prefix(self) -> list[str]:
-        return self.layers[:-1]
-
-    @property
     def save_tag_mdl(self) -> str:
         return ".".join(self.layers)
 
-    @property
-    def save_tag_prd(self) -> str:
-        return os.path.join(*self.prefix)  # type:ignore

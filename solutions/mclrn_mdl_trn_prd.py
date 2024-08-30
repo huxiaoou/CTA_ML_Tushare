@@ -23,7 +23,7 @@ Part II: Class for Machine Learning
 
 
 class CMclrn:
-    XY_INDEX = ["tp", "trade_date", "ticker", "instru"]
+    XY_INDEX = ["trade_date", "instrument"]
     RANDOM_STATE = 0
 
     def __init__(
@@ -183,6 +183,9 @@ class CMclrn:
     def get_X_y(self, aligned_data: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
         return aligned_data[self.x_cols], aligned_data[self.y_col]
 
+    def get_X(self, x_data: pd.DataFrame) -> pd.DataFrame:
+        return x_data[self.x_cols]
+
     def fit_estimator(self, x_data: pd.DataFrame, y_data: pd.Series):
         if self.using_instru:
             x, y = x_data.reset_index(level="instru"), y_data
@@ -269,6 +272,7 @@ class CMclrn:
             x_data = self.load_x(prd_b_date, prd_e_date)
             x_data = self.filter_by_sector(x_data, sec_avlb_data_m)
             x_data = self.drop_and_fill_nan(x_data)
+            x_data = self.get_X(x_data=x_data)
             y_h_data = self.apply_estimator(x_data=x_data)
             if verbose:
                 logger.info(
@@ -282,11 +286,11 @@ class CMclrn:
             return pd.Series(dtype=np.float64)
 
     def process_prd(self, bgn_date: str, stp_date: str, calendar: CCalendar, verbose: bool) -> pd.DataFrame:
-        avlb_data = self.load_sector_available()
+        sec_avlb_data = self.load_sector_available()
         months_groups = calendar.split_by_month(dates=calendar.get_iter_list(bgn_date, stp_date))
         pred_res: list[pd.Series] = []
         for prd_month_id, prd_month_days in months_groups.items():
-            month_prediction = self.predict(prd_month_id, prd_month_days, avlb_data, calendar, verbose)
+            month_prediction = self.predict(prd_month_id, prd_month_days, sec_avlb_data, calendar, verbose)
             pred_res.append(month_prediction)
         prediction = pd.concat(pred_res, axis=0, ignore_index=False)
         prediction.index = pd.MultiIndex.from_tuples(prediction.index, names=self.XY_INDEX)
@@ -294,16 +298,16 @@ class CMclrn:
         return sorted_prediction
 
     def process_save_prediction(self, prediction: pd.DataFrame, calendar: CCalendar):
-        for instru, instru_df in prediction.groupby(by="instrument"):
-            db_struct_prdct = gen_prdct_db(instru, self.mclrn_prd_dir, self.test)  # type:ignore
-            sqldb = CMgrSqlDb(
-                db_save_dir=db_struct_prdct.db_save_dir,
-                db_name=db_struct_prdct.db_name,
-                table=db_struct_prdct.table,
-                mode="a",
-            )
-            if sqldb.check_continuity(incoming_date=instru_df["trade_date"].iloc[0], calendar=calendar) == 0:
-                sqldb.update(update_data=instru_df)
+        db_struct_prdct = gen_prdct_db(self.mclrn_prd_dir, self.test)
+        check_and_makedirs(db_struct_prdct.db_save_dir)
+        sqldb = CMgrSqlDb(
+            db_save_dir=db_struct_prdct.db_save_dir,
+            db_name=db_struct_prdct.db_name,
+            table=db_struct_prdct.table,
+            mode="a",
+        )
+        if sqldb.check_continuity(incoming_date=prediction["trade_date"].iloc[0], calendar=calendar) == 0:
+            sqldb.update(update_data=prediction)
         return 0
 
     def main_mclrn_model(self, bgn_date: str, stp_date: str, calendar: CCalendar, verbose: bool):

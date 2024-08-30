@@ -69,6 +69,12 @@ proj_cfg = CCfgProj(
         _config["path"]["project_root_dir"], _config["path"]["mclrn_dir"],
     ),
     mclrn_cfg_file=_config["path"]["mclrn_cfg_file"],
+    mclrn_mdl_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["mclrn_dir"], _config["path"]["mclrn_mdl_dir"],
+    ),
+    mclrn_prd_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["mclrn_dir"], _config["path"]["mclrn_prd_dir"],
+    ),
 
     universe=universe,
     avlb_unvrs=CCfgAvlbUnvrs(**_config["available"]),

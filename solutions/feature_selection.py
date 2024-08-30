@@ -14,22 +14,31 @@ from typedef import CTestFtSlc, CRet
 from solutions.shared import gen_fac_db, gen_tst_ret_db, gen_feat_slc_db
 
 
-class __CFeatSlc:
+class CFeatSlcReaderAndWriter:
     def __init__(self, test: CTestFtSlc, feat_slc_save_root_dir: str, tst_ret_save_root_dir: str):
         self.test = test
         self.db_struct_feat_slc = gen_feat_slc_db(test, feat_slc_save_root_dir)
         self.tst_ret_save_root_dir = tst_ret_save_root_dir
-        self.slc_fac_data: pd.DataFrame = pd.DataFrame()
 
-    def load(self, bgn_date: str, stp_date: str):
+    def load(self, bgn_date: str, stp_date: str) -> pd.DataFrame:
         sqldb = CMgrSqlDb(
             db_save_dir=self.db_struct_feat_slc.db_save_dir,
             db_name=self.db_struct_feat_slc.db_name,
             table=self.db_struct_feat_slc.table,
             mode="r",
         )
-        self.slc_fac_data = sqldb.read_by_range(bgn_date, stp_date).set_index("trade_date")
-        return 0
+        data = sqldb.read_by_range(bgn_date, stp_date).set_index("trade_date")
+        return data
+
+    def load_by_date(self, trade_date: str) -> pd.DataFrame:
+        sqldb = CMgrSqlDb(
+            db_save_dir=self.db_struct_feat_slc.db_save_dir,
+            db_name=self.db_struct_feat_slc.db_name,
+            table=self.db_struct_feat_slc.table,
+            mode="r",
+        )
+        data = sqldb.read_by_date(trade_date)
+        return data
 
     def save(self, new_data: pd.DataFrame):
         check_and_makedirs(self.db_struct_feat_slc.db_save_dir)
@@ -42,21 +51,27 @@ class __CFeatSlc:
         sqldb.update(update_data=new_data)
         return 0
 
-    def get_slc_facs(self, trade_date: str) -> list[TFactor]:
-        trade_date_data = self.slc_fac_data.loc[trade_date]
-        res = []
-        if isinstance(trade_date_data, pd.Series):
-            factor_class, factor_name = trade_date_data["factor_class"], trade_date_data["factor_name"]
-            res.append(TFactor(factor_class, factor_name))
-        elif isinstance(trade_date_data, pd.DataFrame):
-            for factor_class, factor_name in zip(trade_date_data["factor_class"], trade_date_data["factor_name"]):
-                res.append(TFactor(factor_class, factor_name))
-        else:
-            raise TypeError(f"type of selected features @ {SFR(trade_date)} is {type(trade_date_data)}")
-        return res
+    def get_slc_facs_pool(
+            self,
+            trade_date: str,
+            factors_by_instru_dir: str,
+            neutral_by_instru_dir: str
+    ) -> TFactorsPool:
+        trade_date_data = self.load_by_date(trade_date)
+        pool: TFactorsPool = []
+        for (factor_class, is_neu), factor_class_data in trade_date_data.groupby(by=["factor_class", "is_neu"]):
+            factor_names = factor_class_data["factor_name"].tolist()
+            if is_neu == 0:
+                comb = TFactorComb((factor_class, factor_names, factors_by_instru_dir))
+            elif is_neu == 1:
+                comb = TFactorComb((factor_class, factor_names, neutral_by_instru_dir))
+            else:
+                raise ValueError(f"is_neu = {is_neu} is illegal")
+            pool.append(comb)
+        return pool
 
 
-class CFeatSlc(__CFeatSlc):
+class CFeatSlc(CFeatSlcReaderAndWriter):
     XY_INDEX = ["trade_date", "instrument"]
     RANDOM_STATE = 0
 
@@ -150,21 +165,22 @@ class CFeatSlc(__CFeatSlc):
         ret_data = ret_data.set_index(self.XY_INDEX).sort_index()
         return ret_data
 
-    def load_sector_available(self, stp_date: str) -> pd.DataFrame:
-        __init_date = "20000101"
+    def load_sector_available(self) -> pd.DataFrame:
         sqldb = CMgrSqlDb(
             db_save_dir=self.db_struct_avlb.db_save_dir,
             db_name=self.db_struct_avlb.db_name,
             table=self.db_struct_avlb.table,
             mode="r"
         )
-        ret_data = sqldb.read_by_range(
-            bgn_date=__init_date, stp_date=stp_date,
-            value_columns=["trade_date", "instrument", "sectorL1"]
-        )
+        ret_data = sqldb.read(value_columns=["trade_date", "instrument", "sectorL1"])
         ret_data.rename(columns={"sectorL1": "sector"}, inplace=True)
         sec_avlb_data = ret_data.query(f"sector == '{self.test.sector}'")
         return sec_avlb_data.set_index(self.XY_INDEX)
+
+    @staticmethod
+    def truncate_data_by_date(raw_data: pd.DataFrame, bgn_date: str, stp_date: str) -> pd.DataFrame:
+        new_data = raw_data.query(f"trade_date >= '{bgn_date}' & trade_date < '{stp_date}'")
+        return new_data
 
     @staticmethod
     def filter_by_sector(data: pd.DataFrame, sector_avlb_data: pd.DataFrame) -> pd.DataFrame:
@@ -234,8 +250,9 @@ class CFeatSlc(__CFeatSlc):
         trn_b_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift - self.test.trn_win + 1)
         trn_e_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift)
         trn_s_date = calendar.get_next_date(trn_e_date, shift=1)
+        sec_avlb_data_m = self.truncate_data_by_date(sec_avlb_data, trn_b_date, trn_s_date)
         x_data, y_data = self.load_x(trn_b_date, trn_s_date), self.load_y(trn_b_date, trn_s_date)
-        x_data, y_data = self.filter_by_sector(x_data, sec_avlb_data), self.filter_by_sector(y_data, sec_avlb_data)
+        x_data, y_data = self.filter_by_sector(x_data, sec_avlb_data_m), self.filter_by_sector(y_data, sec_avlb_data_m)
         aligned_data = self.aligned_xy(x_data, y_data)
         aligned_data = self.drop_and_fill_nan(aligned_data)
         x, y = self.get_X_y(aligned_data=aligned_data)
@@ -244,15 +261,15 @@ class CFeatSlc(__CFeatSlc):
         selected_feats = self.get_selected_feats(trn_e_date, factor_class, factor_names, is_neu)
         if verbose:
             logger.info(
-                f"Feature selection @ {SFG(int(model_update_day))}, "
-                f"factor selected @ {SFG(int(trn_e_date))}, "
-                f"using train data @ [{SFG(int(trn_b_date))},{SFG(int(trn_e_date))}], "
-                f"save as {SFG(int(model_update_month))}"
+                f"Feature selection @ {SFG(model_update_day)}, "
+                f"factor selected @ {SFG(trn_e_date)}, "
+                f"using train data @ [{SFG(trn_b_date)},{SFG(trn_e_date)}], "
+                f"save as {SFG(model_update_month)}"
             )
         return selected_feats
 
     def main(self, bgn_date: str, stp_date: str, calendar: CCalendar, verbose: bool):
-        sec_avlb_data = self.load_sector_available(stp_date=stp_date)
+        sec_avlb_data = self.load_sector_available()
         model_update_days = calendar.get_last_days_in_range(bgn_date=bgn_date, stp_date=stp_date)
         selected_features: list[pd.DataFrame] = []
         for model_update_day in model_update_days:

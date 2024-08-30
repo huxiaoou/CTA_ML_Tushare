@@ -65,6 +65,8 @@ class CCfgProj:
     feature_selection_dir: str
     mclrn_dir: str
     mclrn_cfg_file: str
+    mclrn_mdl_dir: str
+    mclrn_prd_dir: str
 
     # --- project parameters
     universe: TUniverse
@@ -103,7 +105,7 @@ TFactorClass = str
 TFactorName = str
 TFactorNames = list[TFactorName]
 TFactorClassAndNames = tuple[TFactorClass, TFactorNames]
-TFactorComb = tuple[TFactorClass, TFactorNames, str]
+TFactorComb = tuple[TFactorClass, TFactorNames, str]  # str is for subdirectory
 TFactor = tuple[TFactorClass, TFactorName]
 TFactorsPool = list[TFactorComb]
 
@@ -632,4 +634,4 @@ class CTest:
 
     @property
     def save_tag_prd(self) -> str:
-        return os.path.join(*self.prefix)
+        return os.path.join(*self.prefix)  # type:ignore

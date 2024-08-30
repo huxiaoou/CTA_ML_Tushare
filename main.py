@@ -46,7 +46,7 @@ def parse_args():
 
     # switch: test return
     arg_parser_sub = arg_parser_subs.add_parser(name="mclrn", help="machine learning functions")
-    arg_parser_sub.add_argument("--type", type=str, choices=("parse", "trn"))
+    arg_parser_sub.add_argument("--type", type=str, choices=("parse", "trnprd"))
 
     return arg_parser.parse_args()
 
@@ -439,7 +439,28 @@ if __name__ == "__main__":
                 cfg_mdl_dir=proj_cfg.mclrn_dir,
                 cfg_mdl_file=proj_cfg.mclrn_cfg_file,
             )
-        elif args.type == "trn":
-            pass
+        elif args.type == "trnprd":
+            from solutions.mclrn_mdl_parser import load_config_models, get_tests
+            from solutions.mclrn_mdl_trn_prd import main_train_and_predict
+
+            config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
+            tests = get_tests(config_models=config_models)
+            main_train_and_predict(
+                tests=tests,
+                tst_ret_save_root_dir=proj_cfg.test_return_dir,
+                factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                neutral_by_instru_dir=proj_cfg.neutral_by_instru_dir,
+                feat_slc_save_root_dir=proj_cfg.feature_selection_dir,
+                db_struct_avlb=db_struct_cfg.available,
+                mclrn_mdl_dir=proj_cfg.mclrn_mdl_dir,
+                mclrn_prd_dir=proj_cfg.mclrn_prd_dir,
+                universe=proj_cfg.universe,
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                calendar=calendar,
+                call_multiprocess=not args.nomp,
+                processes=args.processes,
+                verbose=args.verbose,
+            )
     else:
         raise ValueError(f"args.switch = {args.switch} is illegal")

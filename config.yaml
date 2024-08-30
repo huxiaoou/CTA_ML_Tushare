@@ -19,6 +19,8 @@ path:
   feature_selection_dir: feature_selection
   mclrn_dir: mclrn
   mclrn_cfg_file: config_models.yaml
+  mclrn_mdl_dir: models
+  mclrn_prd_dir: predictions
 
 
 mkt_idxes:

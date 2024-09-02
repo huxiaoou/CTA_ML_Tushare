@@ -533,5 +533,5 @@ if __name__ == "__main__":
             print("This is for portfolios")
         else:
             raise ValueError(f"args.type == {args.type} is illegal")
-else:
-    raise ValueError(f"args.switch = {args.switch} is illegal")
+    else:
+        raise ValueError(f"args.switch = {args.switch} is illegal")

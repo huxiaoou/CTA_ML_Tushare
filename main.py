@@ -48,6 +48,10 @@ def parse_args():
     arg_parser_sub = arg_parser_subs.add_parser(name="mclrn", help="machine learning functions")
     arg_parser_sub.add_argument("--type", type=str, choices=("parse", "trnprd"))
 
+    # switch: test return
+    arg_parser_sub = arg_parser_subs.add_parser(name="signals", help="Select features")
+    arg_parser_sub.add_argument("--type", type=str, choices=("models", "portfolios"))
+
     return arg_parser.parse_args()
 
 
@@ -462,5 +466,29 @@ if __name__ == "__main__":
                 processes=args.processes,
                 verbose=args.verbose,
             )
+        else:
+            raise ValueError(f"args.type == {args.type} is illegal")
+    elif args.switch == "signals":
+        if args.type == "models":
+            from solutions.mclrn_mdl_parser import load_config_models, get_tests
+            from solutions.signals_mdl import main_signals_models
+
+            config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
+            tests = get_tests(config_models=config_models)
+            main_signals_models(
+                tests=tests,
+                prd_save_root_dir=proj_cfg.mclrn_prd_dir,
+                sig_mdl_save_root_dir=proj_cfg.signals_mdl_dir,
+                maw=proj_cfg.const.MAW,
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                calendar=calendar,
+                call_multiprocess=not args.nomp,
+                processes=args.processes
+            )
+        elif args.type == "portfolios":
+            print("This is for portfolios")
+        else:
+            raise ValueError(f"args.type == {args.type} is illegal")
     else:
         raise ValueError(f"args.switch = {args.switch} is illegal")

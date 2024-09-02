@@ -1,5 +1,7 @@
 $bgn_date = "20120104"
-$bgn_date_ml = "20170201"
+$bgn_date_ml = "20170201" # machine learning bgn date
+$bgn_date_sig = "20170703" # signal bgn date
+$bgn_date_sim = "20180102" # simulation bgn date
 $stp_date = "20240826"
 
 # ------------------------
@@ -11,10 +13,12 @@ Remove-Item -Recurse d:\OneDrive\Data\Projects\CTA_ML_Tushare\*
 # --- exectue all projects ---
 # ----------------------------
 
+# --- prepare
 python main.py --bgn $bgn_date --stp $stp_date available
 python main.py --bgn $bgn_date --stp $stp_date market
 python main.py --bgn $bgn_date --stp $stp_date test_return
 
+# --- factor
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass MTM
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass SKEW
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass RS
@@ -36,6 +40,10 @@ python main.py --bgn $bgn_date --stp $stp_date factor --fclass NDOI
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNOI
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNDOI
 
+# --- machine learning
 python main.py --bgn $bgn_date_ml --stp $stp_date --processes 4 feature_selection
 python main.py --bgn $bgn_date_ml --stp $stp_date mclrn --type parse
 python main.py --bgn $bgn_date_ml --stp $stp_date mclrn --type trnprd
+
+# --- model signals and simulation ---
+python main.py --bgn $bgn_date_sig --stp $stp_date signals --type models

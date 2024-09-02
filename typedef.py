@@ -67,6 +67,9 @@ class CCfgProj:
     mclrn_cfg_file: str
     mclrn_mdl_dir: str
     mclrn_prd_dir: str
+    signals_dir: str
+    signals_mdl_dir: str
+    signals_pfo_dir: str
 
     # --- project parameters
     universe: TUniverse
@@ -627,4 +630,3 @@ class CTest:
     @property
     def save_tag_mdl(self) -> str:
         return ".".join(self.layers)
-

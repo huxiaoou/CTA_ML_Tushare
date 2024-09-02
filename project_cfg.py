@@ -75,6 +75,15 @@ proj_cfg = CCfgProj(
     mclrn_prd_dir=os.path.join(  # type:ignore
         _config["path"]["project_root_dir"], _config["path"]["mclrn_dir"], _config["path"]["mclrn_prd_dir"],
     ),
+    signals_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["signals_dir"],
+    ),
+    signals_mdl_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["signals_dir"], _config["path"]["signals_mdl_dir"],
+    ),
+    signals_pfo_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["signals_dir"], _config["path"]["signals_pfo_dir"],
+    ),
 
     universe=universe,
     avlb_unvrs=CCfgAvlbUnvrs(**_config["available"]),

@@ -21,6 +21,9 @@ path:
   mclrn_cfg_file: config_models.yaml
   mclrn_mdl_dir: models
   mclrn_prd_dir: predictions
+  signals_dir: signals
+  signals_mdl_dir: models
+  signals_pfo_dir: portfolios
 
 
 mkt_idxes:

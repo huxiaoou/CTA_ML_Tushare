@@ -630,3 +630,12 @@ class CTest:
     @property
     def save_tag_mdl(self) -> str:
         return ".".join(self.layers)
+
+
+# --- simulations ---
+@dataclass(frozen=True)
+class CSimArg:
+    sim_id: str
+    sig: CDbStruct
+    ret: CDbStruct
+    cost: float

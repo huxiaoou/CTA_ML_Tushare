@@ -28,6 +28,7 @@ def parse_args():
 
     # switch: test return
     arg_parser_sub = arg_parser_subs.add_parser(name="test_return", help="Calculate test returns")
+    arg_parser_sub.add_argument("--type", type=str, choices=("calculate", "regroup"))
 
     # switch: factor
     arg_parser_sub = arg_parser_subs.add_parser(name="factor", help="Calculate factor")
@@ -90,34 +91,46 @@ if __name__ == "__main__":
             sectors=proj_cfg.const.SECTORS,
         )
     elif args.switch == "test_return":
-        from solutions.test_return import CTstRetRaw, CTstRetNeu
+        if args.type == "calculate":
+            from solutions.test_return import CTstRetRaw, CTstRetNeu
 
-        for lag, win in zip((proj_cfg.const.LAG, 1), (proj_cfg.const.WIN, 1)):
-            # --- raw return
-            tst_ret = CTstRetRaw(
-                lag=lag, win=win,
-                universe=list(proj_cfg.universe),
-                db_tst_ret_save_dir=proj_cfg.test_return_dir,
-                db_struct_preprocess=db_struct_cfg.preprocess,
-            )
-            tst_ret.main_test_return_raw(bgn_date, stp_date, calendar)
+            for lag, win in zip((proj_cfg.const.LAG, 1), (proj_cfg.const.WIN, 1)):
+                # --- raw return
+                tst_ret = CTstRetRaw(
+                    lag=lag, win=win,
+                    universe=list(proj_cfg.universe),
+                    db_tst_ret_save_dir=proj_cfg.test_return_dir,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                )
+                tst_ret.main_test_return_raw(bgn_date, stp_date, calendar)
 
-            # --- neutralization
-            tst_ret_neu = CTstRetNeu(
-                lag=lag,
-                win=win,
+                # --- neutralization
+                tst_ret_neu = CTstRetNeu(
+                    lag=lag,
+                    win=win,
+                    universe=list(proj_cfg.universe),
+                    db_tst_ret_save_dir=proj_cfg.test_return_dir,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_avlb=db_struct_cfg.available,
+                )
+                tst_ret_neu.main_test_return_neu(
+                    bgn_date=bgn_date,
+                    stp_date=stp_date,
+                    calendar=calendar,
+                    call_multiprocess=not args.nomp,
+                    processes=args.processes,
+                )
+        elif args.type == "regroup":
+            from solutions.test_return import main_regroup
+
+            main_regroup(
                 universe=list(proj_cfg.universe),
-                db_tst_ret_save_dir=proj_cfg.test_return_dir,
-                db_struct_preprocess=db_struct_cfg.preprocess,
-                db_struct_avlb=db_struct_cfg.available,
+                win=1, lag=1,
+                db_save_root_dir=proj_cfg.test_return_dir,
+                bgn_date=bgn_date, stp_date=stp_date, calendar=calendar,
             )
-            tst_ret_neu.main_test_return_neu(
-                bgn_date=bgn_date,
-                stp_date=stp_date,
-                calendar=calendar,
-                call_multiprocess=not args.nomp,
-                processes=args.processes,
-            )
+        else:
+            raise ValueError(f"args.type == {args.type} is illegal")
     elif args.switch == "factor":
         from project_cfg import cfg_factors
 

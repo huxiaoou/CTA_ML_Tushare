@@ -1,4 +1,5 @@
 import scipy.stats as sps
+import numpy as np
 import pandas as pd
 import multiprocessing as mp
 from rich.progress import track
@@ -6,7 +7,7 @@ from loguru import logger
 from husfort.qutility import qtimer, SFG, error_handler, check_and_makedirs
 from husfort.qcalendar import CCalendar
 from husfort.qsqlite import CDbStruct, CMgrSqlDb
-from solutions.shared import gen_tst_ret_db
+from solutions.shared import gen_tst_ret_db, gen_tst_ret_regrp_db
 
 
 class _CTstRetGeneric:
@@ -281,3 +282,66 @@ class CTstRetNeu(_CTstRetGeneric):
                     calendar=calendar,
                 )
         return 0
+
+
+def main_regroup(
+        universe: list[str],
+        win: int,
+        lag: int,
+        db_save_root_dir: str,
+        bgn_date: str,
+        stp_date: str,
+        calendar: CCalendar,
+        ret_types: tuple = ("RAW", "NEU"),
+):
+    iter_dates = calendar.get_iter_list(bgn_date, stp_date)
+    base_bgn_date = calendar.get_next_date(iter_dates[0], shift=-(lag + win))
+    base_end_date = calendar.get_next_date(iter_dates[-1], shift=-(lag + win))
+    base_stp_date = calendar.get_next_date(base_end_date, shift=1)
+
+    for ret_type in ret_types:
+        save_id = f"{win:03d}L{lag}{ret_type}"
+        ret_cls, ret_opn = f"ClsRtn{save_id}", f"OpnRtn{save_id}"
+        rets = [ret_cls, ret_opn]
+
+        # --- load
+        dfs: list[pd.DataFrame] = []
+        for instrument in universe:
+            db_struct_instru = gen_tst_ret_db(
+                instru=instrument,
+                db_save_root_dir=db_save_root_dir,
+                save_id=save_id,
+                rets=rets,
+            )
+            sql_db = CMgrSqlDb(
+                db_save_dir=db_struct_instru.db_save_dir,
+                db_name=db_struct_instru.db_name,
+                table=db_struct_instru.table,
+                mode="r",
+            )
+            instru_data = sql_db.read_by_range(
+                bgn_date=base_bgn_date, stp_date=base_stp_date, value_columns=["trade_date"] + rets
+            )
+            instru_data["instrument"] = instrument
+            instru_data[rets] = instru_data[rets].astype(np.float64).fillna(np.nan)
+            dfs.append(instru_data)
+        all_ret_data = pd.concat(dfs, axis=0, ignore_index=True)
+        all_ret_data = all_ret_data.sort_values(by=["trade_date", "instrument"])
+
+        # save
+        for ret_name in rets:
+            ret_data = all_ret_data[["trade_date", "instrument", ret_name]]
+            db_struct_ret = gen_tst_ret_regrp_db(
+                db_save_root_dir=db_save_root_dir,
+                ret_name=ret_name,
+            )
+            sql_db = CMgrSqlDb(
+                db_save_dir=db_struct_ret.db_save_dir,
+                db_name=db_struct_ret.db_name,
+                table=db_struct_ret.table,
+                mode="a",
+            )
+            if sql_db.check_continuity(ret_data["trade_date"].iloc[0], calendar) == 0:
+                sql_db.update(ret_data)
+            logger.info(f"Regrouping test return for {SFG(ret_name)}")
+    return 0

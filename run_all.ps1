@@ -16,7 +16,8 @@ Remove-Item -Recurse d:\OneDrive\Data\Projects\CTA_ML_Tushare\*
 # --- prepare
 python main.py --bgn $bgn_date --stp $stp_date available
 python main.py --bgn $bgn_date --stp $stp_date market
-python main.py --bgn $bgn_date --stp $stp_date test_return
+python main.py --bgn $bgn_date --stp $stp_date test_return --type calculate
+python main.py --bgn $bgn_date --stp $stp_date test_return --type regroup
 
 # --- factor
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass MTM

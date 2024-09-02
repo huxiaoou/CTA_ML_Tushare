@@ -1,6 +1,6 @@
 import os
 from husfort.qsqlite import CDbStruct, CSqlTable, CSqlVar
-from typedef import TFactorClass, TFactorNames, CTestFtSlc, CTest
+from typedef import TFactorClass, TFactorNames, CTestFtSlc, CTest, CSimArgs
 
 
 def convert_mkt_idx(mkt_idx: str, prefix: str = "I") -> str:
@@ -86,5 +86,23 @@ def gen_sig_mdl_db(db_save_root_dir: str, test: CTest) -> CDbStruct:
             name="factor",
             primary_keys=[CSqlVar("trade_date", "TEXT"), CSqlVar("instrument", "TEXT")],
             value_columns=[CSqlVar(test.ret.ret_name, "REAL")],
+        )
+    )
+
+
+def gen_nav_db(db_save_dir: str, sim_arg: CSimArgs) -> CDbStruct:
+    return CDbStruct(
+        db_save_dir=db_save_dir,
+        db_name=f"{sim_arg.sim_id}.db",
+        table=CSqlTable(
+            name="factor",
+            primary_keys=[CSqlVar("trade_date", "TEXT")],
+            value_columns=[
+                CSqlVar("raw_ret", "REAL"),
+                CSqlVar("dlt_wgt", "REAL"),
+                CSqlVar("cost", "REAL"),
+                CSqlVar("net_ret", "REAL"),
+                CSqlVar("nav", "REAL"),
+            ],
         )
     )

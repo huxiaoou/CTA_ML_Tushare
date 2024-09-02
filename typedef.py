@@ -1,4 +1,3 @@
-import os
 import itertools as ittl
 from dataclasses import dataclass
 from husfort.qsqlite import CDbStruct
@@ -70,6 +69,9 @@ class CCfgProj:
     signals_dir: str
     signals_mdl_dir: str
     signals_pfo_dir: str
+    simu_dir: str
+    simu_mdl_dir: str
+    simu_pfo_dir: str
 
     # --- project parameters
     universe: TUniverse
@@ -634,8 +636,10 @@ class CTest:
 
 # --- simulations ---
 @dataclass(frozen=True)
-class CSimArg:
+class CSimArgs:
     sim_id: str
-    sig: CDbStruct
-    ret: CDbStruct
+    sig_name: str
+    tgt_ret: CRet
+    db_struct_sig: CDbStruct
+    db_struct_ret: CDbStruct
     cost: float

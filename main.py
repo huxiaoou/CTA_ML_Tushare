@@ -45,12 +45,16 @@ def parse_args():
     # switch: test return
     arg_parser_sub = arg_parser_subs.add_parser(name="feature_selection", help="Select features")
 
-    # switch: test return
+    # switch: mclrn
     arg_parser_sub = arg_parser_subs.add_parser(name="mclrn", help="machine learning functions")
     arg_parser_sub.add_argument("--type", type=str, choices=("parse", "trnprd"))
 
-    # switch: test return
-    arg_parser_sub = arg_parser_subs.add_parser(name="signals", help="Select features")
+    # switch: signals
+    arg_parser_sub = arg_parser_subs.add_parser(name="signals", help="generate signals from prediction")
+    arg_parser_sub.add_argument("--type", type=str, choices=("models", "portfolios"))
+
+    # switch: simulations
+    arg_parser_sub = arg_parser_subs.add_parser(name="simulations", help="simulate from signals")
     arg_parser_sub.add_argument("--type", type=str, choices=("models", "portfolios"))
 
     return arg_parser.parse_args()
@@ -503,5 +507,31 @@ if __name__ == "__main__":
             print("This is for portfolios")
         else:
             raise ValueError(f"args.type == {args.type} is illegal")
-    else:
-        raise ValueError(f"args.switch = {args.switch} is illegal")
+    elif args.switch == "simulations":
+        if args.type == "models":
+            from solutions.mclrn_mdl_parser import load_config_models, get_tests
+            from solutions.simulations import main_simulations, get_sim_args_from_tests
+
+            config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
+            tests = get_tests(config_models=config_models)
+            simu_args = get_sim_args_from_tests(
+                tests=tests,
+                cost=proj_cfg.const.COST,
+                test_return_dir=proj_cfg.test_return_dir,
+                signals_mdl_dir=proj_cfg.signals_mdl_dir,
+            )
+            main_simulations(
+                sim_args=simu_args,
+                sim_save_dir=proj_cfg.simu_mdl_dir,
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                calendar=calendar,
+                call_multiprocess=not args.nomp,
+                processes=args.processes,
+            )
+        elif args.type == "portfolios":
+            print("This is for portfolios")
+        else:
+            raise ValueError(f"args.type == {args.type} is illegal")
+else:
+    raise ValueError(f"args.switch = {args.switch} is illegal")

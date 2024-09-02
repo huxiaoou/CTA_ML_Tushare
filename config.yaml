@@ -24,6 +24,9 @@ path:
   signals_dir: signals
   signals_mdl_dir: models
   signals_pfo_dir: portfolios
+  simu_dir: simulations
+  simu_mdl_dir: models
+  simu_pfo_dir: portfolios
 
 
 mkt_idxes:

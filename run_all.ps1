@@ -48,3 +48,4 @@ python main.py --bgn $bgn_date_ml --stp $stp_date mclrn --type trnprd
 
 # --- model signals and simulation ---
 python main.py --bgn $bgn_date_sig --stp $stp_date signals --type models
+python main.py --bgn $bgn_date_sim --stp $stp_date simulations --type models

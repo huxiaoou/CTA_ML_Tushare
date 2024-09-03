@@ -93,6 +93,15 @@ proj_cfg = CCfgProj(
     simu_pfo_dir=os.path.join(  # type:ignore
         _config["path"]["project_root_dir"], _config["path"]["simu_dir"], _config["path"]["simu_pfo_dir"],
     ),
+    eval_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["eval_dir"],
+    ),
+    eval_mdl_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["eval_dir"], _config["path"]["eval_mdl_dir"],
+    ),
+    eval_pfo_dir=os.path.join(  # type:ignore
+        _config["path"]["project_root_dir"], _config["path"]["eval_dir"], _config["path"]["eval_pfo_dir"],
+    ),
 
     universe=universe,
     avlb_unvrs=CCfgAvlbUnvrs(**_config["available"]),

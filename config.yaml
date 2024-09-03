@@ -27,6 +27,9 @@ path:
   simu_dir: simulations
   simu_mdl_dir: models
   simu_pfo_dir: portfolios
+  eval_dir: evaluations
+  eval_mdl_dir: models
+  eval_pfo_dir: portfolios
 
 
 mkt_idxes:

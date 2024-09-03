@@ -72,6 +72,9 @@ class CCfgProj:
     simu_dir: str
     simu_mdl_dir: str
     simu_pfo_dir: str
+    eval_dir: str
+    eval_mdl_dir: str
+    eval_pfo_dir: str
 
     # --- project parameters
     universe: TUniverse
@@ -643,3 +646,12 @@ class CSimArgs:
     db_struct_sig: CDbStruct
     db_struct_ret: CDbStruct
     cost: float
+
+
+TSimArgsPriKey = tuple[str, str, str, str]  # ret_class, trn_win, model_desc, sector
+TSimArgsSecKey = tuple[str, str]  # sector, unique_id
+TSimArgsGrp = dict[TSimArgsPriKey, dict[TSimArgsSecKey, CSimArgs]]
+
+TSimArgsPriKeyBySec = str  # sector
+TSimArgsSecKeyBySec = tuple[str, str, str, str, str]  # (ret_class, trn_win, model_desc, ret_name, unique_id)
+TSimArgsGrpBySec = dict[TSimArgsPriKeyBySec, dict[TSimArgsSecKeyBySec, CSimArgs]]

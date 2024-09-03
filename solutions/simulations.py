@@ -6,6 +6,8 @@ from husfort.qcalendar import CCalendar
 from husfort.qsqlite import CMgrSqlDb
 from solutions.shared import gen_tst_ret_regrp_db, gen_sig_mdl_db, gen_nav_db
 from typedef import CTest, CSimArgs, CRet
+from typedef import TSimArgsGrp, TSimArgsPriKey, TSimArgsSecKey
+from typedef import TSimArgsGrpBySec, TSimArgsPriKeyBySec, TSimArgsSecKeyBySec
 
 
 def get_sim_args_from_tests(
@@ -37,26 +39,26 @@ def get_sim_args_from_tests(
     return res
 
 
-# def group_sim_args(sim_args: list[CSimArg]) -> dict[tuple[str, str, str, str], dict[tuple[str, str], CSimArg]]:
-#     grouped_sim_args: dict[tuple[str, str, str, str], dict[tuple[str, str], CSimArg]] = {}
-#     for sim_arg in sim_args:
-#         ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_arg.sim_id.split(".")
-#         key0, key1 = (ret_class, trn_win, model_desc, ret_name), (sector, unique_id)
-#         if key0 not in grouped_sim_args:
-#             grouped_sim_args[key0] = {}
-#         grouped_sim_args[key0][key1] = sim_arg
-#     return grouped_sim_args
-#
-#
-# def group_sim_args_by_sector(sim_args: list[CSimArg]) -> dict[str, dict[tuple[str, str, str, str, str], CSimArg]]:
-#     grouped_sim_args: dict[str, dict[tuple[str, str, str, str, str], CSimArg]] = {}
-#     for sim_arg in sim_args:
-#         ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_arg.sim_id.split(".")
-#         key0, key1 = sector, (ret_class, trn_win, model_desc, ret_name, unique_id)
-#         if key0 not in grouped_sim_args:
-#             grouped_sim_args[key0] = {}
-#         grouped_sim_args[key0][key1] = sim_arg
-#     return grouped_sim_args
+def group_sim_args(sim_args_lst: list[CSimArgs]) -> TSimArgsGrp:
+    grouped_sim_args: TSimArgsGrp = {}
+    for sim_arg in sim_args_lst:
+        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_arg.sim_id.split(".")
+        key0, key1 = TSimArgsPriKey((ret_class, trn_win, model_desc, ret_name)), TSimArgsSecKey((sector, unique_id))
+        if key0 not in grouped_sim_args:
+            grouped_sim_args[key0] = {}
+        grouped_sim_args[key0][key1] = sim_arg
+    return grouped_sim_args
+
+
+def group_sim_args_by_sector(sim_args: list[CSimArgs]) -> TSimArgsGrpBySec:
+    grouped_sim_args: TSimArgsGrpBySec = {}
+    for sim_arg in sim_args:
+        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_arg.sim_id.split(".")
+        key0, key1 = TSimArgsPriKeyBySec(sector), TSimArgsSecKeyBySec((ret_class, trn_win, model_desc, ret_name, unique_id))
+        if key0 not in grouped_sim_args:
+            grouped_sim_args[key0] = {}
+        grouped_sim_args[key0][key1] = sim_arg
+    return grouped_sim_args
 
 
 # @dataclass(frozen=True)
@@ -106,7 +108,7 @@ class CSim:
     def __init__(self, sim_args: CSimArgs, sim_save_dir: str):
         self.sim_args = sim_args
         self.sim_save_dir = sim_save_dir
-        self.db_struct_sim = gen_nav_db(db_save_dir=sim_save_dir, sim_arg=sim_args)
+        self.db_struct_sim = gen_nav_db(db_save_dir=sim_save_dir, save_id=sim_args.sim_id)
 
     def load_sig(self, bgn_date: str, stp_date: str) -> pd.DataFrame:
         sqldb = CMgrSqlDb(

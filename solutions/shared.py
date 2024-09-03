@@ -90,10 +90,10 @@ def gen_sig_mdl_db(db_save_root_dir: str, test: CTest) -> CDbStruct:
     )
 
 
-def gen_nav_db(db_save_dir: str, sim_arg: CSimArgs) -> CDbStruct:
+def gen_nav_db(db_save_dir: str, save_id: str) -> CDbStruct:
     return CDbStruct(
         db_save_dir=db_save_dir,
-        db_name=f"{sim_arg.sim_id}.db",
+        db_name=f"{save_id}.db",
         table=CSqlTable(
             name="factor",
             primary_keys=[CSqlVar("trade_date", "TEXT")],

@@ -102,7 +102,7 @@ def process_for_cal_signal_portfolio(
 
 
 @qtimer
-def main_translate_signals_portfolio(
+def main_signals_portfolios(
         portfolio_args: list[CPortfolioArgs],
         signals_pfo_dir: str,
         bgn_date: str,

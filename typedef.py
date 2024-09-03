@@ -85,6 +85,7 @@ class CCfgProj:
     trn: CCfgTrn
     feat_slc: CCfgFeatSlc
     mclrn: dict[str, dict]
+    portfolios: dict[str, dict]
 
 
 @dataclass(frozen=True)
@@ -599,26 +600,34 @@ class CTestFtSlc:
 
 
 # --- machine learning models ---
+TMdlDesc = str
+
+
 @dataclass(frozen=True)
 class CModel:
     model_type: str
     model_args: dict
 
     @property
-    def desc(self) -> str:
+    def desc(self) -> TMdlDesc:
         return f"{self.model_type}"
 
 
+TUniqueId = str
+TWinTxt = str
+TSector = str
+
+
 @dataclass(frozen=True)
-class CTest:
-    unique_Id: str
+class CTestMdl:
+    unique_Id: TUniqueId
     trn_win: int
-    sector: str
+    sector: TSector
     ret: CRet
     model: CModel
 
     @property
-    def tw(self) -> str:
+    def tw(self) -> TWinTxt:
         return f"W{self.trn_win:03d}"
 
     @property
@@ -648,18 +657,25 @@ class CSimArgs:
     cost: float
 
 
+TPid = str
+TTarget = str
+TWeights = dict[TUniqueId, float]
+
+
 @dataclass(frozen=True)
 class CPortfolioArgs:
-    pid: str
-    target: str
-    weights: dict[str, float]
+    pid: TPid
+    target: TTarget
+    weights: TWeights
     portfolio_sim_args: dict[str, CSimArgs]
 
 
-TSimArgsPriKey = tuple[str, str, str, str]  # ret_class, trn_win, model_desc, sector
-TSimArgsSecKey = tuple[str, str]  # sector, unique_id
+TSimArgsPriKey = tuple[TReturnClass, TWinTxt, TMdlDesc, TSector]  # ret_class, trn_win, model_desc, sector
+TSimArgsSecKey = tuple[TSector, TUniqueId]  # sector, unique_id
 TSimArgsGrp = dict[TSimArgsPriKey, dict[TSimArgsSecKey, CSimArgs]]
 
-TSimArgsPriKeyBySec = str  # sector
-TSimArgsSecKeyBySec = tuple[str, str, str, str, str]  # (ret_class, trn_win, model_desc, ret_name, unique_id)
+TSimArgsPriKeyBySec = TSector  # sector
+TSimArgsSecKeyBySec = tuple[
+    TReturnClass, TWinTxt, TMdlDesc, TReturnName, TUniqueId  # (ret_class, trn_win, model_desc, ret_name, unique_id)
+]
 TSimArgsGrpBySec = dict[TSimArgsPriKeyBySec, dict[TSimArgsSecKeyBySec, CSimArgs]]

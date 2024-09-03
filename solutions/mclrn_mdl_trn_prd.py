@@ -13,7 +13,7 @@ from husfort.qcalendar import CCalendar
 from husfort.qsqlite import CDbStruct, CMgrSqlDb
 from typedef import TUniverse, TReturnName
 from typedef import TFactorNames, TFactorComb, TFactorsPool
-from typedef import CTest, CTestFtSlc
+from typedef import CTestMdl, CTestFtSlc
 from solutions.shared import gen_fac_db, gen_tst_ret_db, gen_prdct_db
 from solutions.feature_selection import CFeatSlcReaderAndWriter
 
@@ -29,7 +29,7 @@ class CMclrn:
     def __init__(
             self,
             using_instru: bool,
-            test: CTest,
+            test: CTestMdl,
             tst_ret_save_root_dir: str,
             factors_by_instru_dir: str,
             neutral_by_instru_dir: str,
@@ -321,7 +321,7 @@ class CMclrnFromFeatureSelection(CMclrn):
     def __init__(
             self,
             using_instru: bool,
-            test: CTest,
+            test: CTestMdl,
             tst_ret_save_root_dir: str,
             factors_by_instru_dir: str,
             neutral_by_instru_dir: str,
@@ -427,7 +427,7 @@ Part III: Wrapper for CMclrn
 
 
 def process_for_cMclrn(
-        test: CTest,
+        test: CTestMdl,
         tst_ret_save_root_dir: str,
         factors_by_instru_dir: str,
         neutral_by_instru_dir: str,
@@ -468,7 +468,7 @@ def process_for_cMclrn(
 
 @qtimer
 def main_train_and_predict(
-        tests: list[CTest],
+        tests: list[CTestMdl],
         tst_ret_save_root_dir: str,
         factors_by_instru_dir: str,
         neutral_by_instru_dir: str,

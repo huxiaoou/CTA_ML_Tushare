@@ -5,7 +5,7 @@ from husfort.qutility import qtimer, error_handler, check_and_makedirs
 from husfort.qsqlite import CMgrSqlDb
 from husfort.qcalendar import CCalendar
 from solutions.shared import gen_prdct_db, gen_sig_mdl_db
-from typedef import CTest
+from typedef import CTestMdl
 
 """
 Part I: Signals from single mdl
@@ -13,7 +13,7 @@ Part I: Signals from single mdl
 
 
 class CSignal:
-    def __init__(self, input_dir: str, output_dir: str, test: CTest, maw: int):
+    def __init__(self, input_dir: str, output_dir: str, test: CTestMdl, maw: int):
         self.test = test
         self.maw = maw  # moving average window
         self.db_struct_prd = gen_prdct_db(db_save_root_dir=input_dir, test=test)
@@ -94,7 +94,7 @@ class CSignalCrsSec(CSignal):
 def process_for_signal(
         input_dir: str,
         output_dir: str,
-        test: CTest,
+        test: CTestMdl,
         maw: int,
         bgn_date: str,
         stp_date: str,
@@ -107,7 +107,7 @@ def process_for_signal(
 
 @qtimer
 def main_signals_models(
-        tests: list[CTest],
+        tests: list[CTestMdl],
         prd_save_root_dir: str,
         sig_mdl_save_root_dir: str,
         maw: int,

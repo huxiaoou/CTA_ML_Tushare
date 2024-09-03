@@ -1,8 +1,8 @@
 import os
 from husfort.qutility import SFR
 from husfort.qsqlite import CDbStruct, CSqlTable, CSqlVar
-from typedef import TFactorClass, TFactorNames, CTestFtSlc, CTest, CSimArgs
-from typedef import CRet
+from typedef import TFactorClass, TFactorNames, CTestFtSlc, CTestMdl, CSimArgs
+from typedef import CRet, CModel
 from typedef import TSimArgsGrp, TSimArgsPriKey, TSimArgsSecKey
 from typedef import TSimArgsGrpBySec, TSimArgsPriKeyBySec, TSimArgsSecKeyBySec
 from typedef import CPortfolioArgs
@@ -75,7 +75,7 @@ def gen_feat_slc_db(test: CTestFtSlc, db_save_root_dir: str) -> CDbStruct:
     )
 
 
-def gen_prdct_db(db_save_root_dir: str, test: CTest) -> CDbStruct:
+def gen_prdct_db(db_save_root_dir: str, test: CTestMdl) -> CDbStruct:
     return CDbStruct(
         db_save_dir=db_save_root_dir,
         db_name=f"{test.save_tag_mdl}.db",
@@ -87,7 +87,7 @@ def gen_prdct_db(db_save_root_dir: str, test: CTest) -> CDbStruct:
     )
 
 
-def gen_sig_mdl_db(db_save_root_dir: str, test: CTest) -> CDbStruct:
+def gen_sig_mdl_db(db_save_root_dir: str, test: CTestMdl) -> CDbStruct:
     return CDbStruct(
         db_save_dir=db_save_root_dir,
         db_name=f"{test.save_tag_mdl}.db",
@@ -129,13 +129,22 @@ def gen_nav_db(db_save_dir: str, save_id: str) -> CDbStruct:
     )
 
 
-# ----------------------------------------
-# ------ sqlite3 database structure ------
-# ----------------------------------------
+# -----------------------------------------
+# ------ arguments about simulations ------
+# -----------------------------------------
+
+def gen_model_tests(config_models: dict[str, dict]) -> list[CTestMdl]:
+    tests: list[CTestMdl] = []
+    for unique_id, m in config_models.items():
+        ret = CRet(ret_class=m["ret_class"], ret_name=m["ret_name"], shift=m["shift"])
+        model = CModel(model_type=m["model_type"], model_args=m["model_args"])
+        test = CTestMdl(unique_Id=unique_id, trn_win=m["trn_win"], sector=m["sector"], ret=ret, model=model)
+        tests.append(test)
+    return tests
 
 
-def get_sim_args_from_tests(
-        tests: list[CTest], cost: float, test_return_dir: str, signals_mdl_dir: str
+def get_sim_args_from_model_tests(
+        tests: list[CTestMdl], cost: float, test_return_dir: str, signals_mdl_dir: str
 ) -> list[CSimArgs]:
     res: list[CSimArgs] = []
     for test in tests:
@@ -162,26 +171,26 @@ def get_sim_args_from_tests(
     return res
 
 
-def group_sim_args(sim_args_lst: list[CSimArgs]) -> TSimArgsGrp:
+def group_sim_args(sim_args_list: list[CSimArgs]) -> TSimArgsGrp:
     grouped_sim_args: TSimArgsGrp = {}
-    for sim_arg in sim_args_lst:
-        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_arg.sim_id.split(".")
+    for sim_args in sim_args_list:
+        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_args.sim_id.split(".")
         key0, key1 = TSimArgsPriKey((ret_class, trn_win, model_desc, ret_name)), TSimArgsSecKey((sector, unique_id))
         if key0 not in grouped_sim_args:
             grouped_sim_args[key0] = {}
-        grouped_sim_args[key0][key1] = sim_arg
+        grouped_sim_args[key0][key1] = sim_args
     return grouped_sim_args
 
 
-def group_sim_args_by_sector(sim_args: list[CSimArgs]) -> TSimArgsGrpBySec:
+def group_sim_args_by_sector(sim_args_list: list[CSimArgs]) -> TSimArgsGrpBySec:
     grouped_sim_args: TSimArgsGrpBySec = {}
-    for sim_arg in sim_args:
-        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_arg.sim_id.split(".")
+    for sim_args in sim_args_list:
+        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_args.sim_id.split(".")
         key0, key1 = TSimArgsPriKeyBySec(sector), TSimArgsSecKeyBySec(
             (ret_class, trn_win, model_desc, ret_name, unique_id))
         if key0 not in grouped_sim_args:
             grouped_sim_args[key0] = {}
-        grouped_sim_args[key0][key1] = sim_arg
+        grouped_sim_args[key0][key1] = sim_args
     return grouped_sim_args
 
 

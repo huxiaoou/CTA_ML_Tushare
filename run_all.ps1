@@ -49,3 +49,8 @@ python main.py --bgn $bgn_date_ml --stp $stp_date --processes 5 mclrn --type trn
 # --- model signals and simulation ---
 python main.py --bgn $bgn_date_sig --stp $stp_date signals --type models
 python main.py --bgn $bgn_date_sim --stp $stp_date simulations --type models
+python main.py --bgn $bgn_date_sim --stp $stp_date evaluations --type models
+
+python main.py --bgn $bgn_date_sig --stp $stp_date signals --type portfolios
+python main.py --bgn $bgn_date_sim --stp $stp_date simulations --type portfolios
+python main.py --bgn $bgn_date_sim --stp $stp_date evaluations --type portfolios

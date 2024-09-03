@@ -57,6 +57,10 @@ def parse_args():
     arg_parser_sub = arg_parser_subs.add_parser(name="simulations", help="simulate from signals")
     arg_parser_sub.add_argument("--type", type=str, choices=("models", "portfolios"))
 
+    # switch: evaluations
+    arg_parser_sub = arg_parser_subs.add_parser(name="evaluations", help="evaluate simulations")
+    arg_parser_sub.add_argument("--type", type=str, choices=("models", "portfolios"))
+
     return arg_parser.parse_args()
 
 
@@ -461,11 +465,12 @@ if __name__ == "__main__":
                 cfg_mdl_file=proj_cfg.mclrn_cfg_file,
             )
         elif args.type == "trnprd":
-            from solutions.mclrn_mdl_parser import load_config_models, get_tests
+            from solutions.mclrn_mdl_parser import load_config_models
             from solutions.mclrn_mdl_trn_prd import main_train_and_predict
+            from solutions.shared import gen_model_tests
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
-            tests = get_tests(config_models=config_models)
+            tests = gen_model_tests(config_models=config_models)
             main_train_and_predict(
                 tests=tests,
                 tst_ret_save_root_dir=proj_cfg.test_return_dir,
@@ -487,11 +492,12 @@ if __name__ == "__main__":
             raise ValueError(f"args.type == {args.type} is illegal")
     elif args.switch == "signals":
         if args.type == "models":
-            from solutions.mclrn_mdl_parser import load_config_models, get_tests
+            from solutions.mclrn_mdl_parser import load_config_models
             from solutions.signals_mdl import main_signals_models
+            from solutions.shared import gen_model_tests
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
-            tests = get_tests(config_models=config_models)
+            tests = gen_model_tests(config_models=config_models)
             main_signals_models(
                 tests=tests,
                 prd_save_root_dir=proj_cfg.mclrn_prd_dir,
@@ -501,27 +507,51 @@ if __name__ == "__main__":
                 stp_date=stp_date,
                 calendar=calendar,
                 call_multiprocess=not args.nomp,
-                processes=args.processes
+                processes=args.processes,
             )
         elif args.type == "portfolios":
-            print("This is for portfolios")
+            from solutions.mclrn_mdl_parser import load_config_models
+            from solutions.signals_pfo import main_signals_portfolios
+            from solutions.shared import gen_model_tests, get_portfolio_args, get_sim_args_from_model_tests
+
+            config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
+            tests = gen_model_tests(config_models=config_models)
+            simu_args_list = get_sim_args_from_model_tests(
+                tests=tests,
+                cost=proj_cfg.const.COST,
+                test_return_dir=proj_cfg.test_return_dir,
+                signals_mdl_dir=proj_cfg.signals_mdl_dir,
+            )
+
+            portfolio_args = get_portfolio_args(proj_cfg.portfolios, sim_args_list=simu_args_list)
+            main_signals_portfolios(
+                portfolio_args=portfolio_args,
+                signals_pfo_dir=proj_cfg.signals_pfo_dir,
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                calendar=calendar,
+                call_multiprocess=not args.nomp,
+                processes=args.processes,
+            )
+
         else:
             raise ValueError(f"args.type == {args.type} is illegal")
     elif args.switch == "simulations":
         if args.type == "models":
-            from solutions.mclrn_mdl_parser import load_config_models, get_tests
-            from solutions.simulations import main_simulations, get_sim_args_from_tests
+            from solutions.mclrn_mdl_parser import load_config_models
+            from solutions.simulations import main_simulations
+            from solutions.shared import gen_model_tests, get_sim_args_from_model_tests
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
-            tests = get_tests(config_models=config_models)
-            simu_args = get_sim_args_from_tests(
+            tests = gen_model_tests(config_models=config_models)
+            simu_args_list = get_sim_args_from_model_tests(
                 tests=tests,
                 cost=proj_cfg.const.COST,
                 test_return_dir=proj_cfg.test_return_dir,
                 signals_mdl_dir=proj_cfg.signals_mdl_dir,
             )
             main_simulations(
-                sim_args=simu_args,
+                sim_args=simu_args_list,
                 sim_save_dir=proj_cfg.simu_mdl_dir,
                 bgn_date=bgn_date,
                 stp_date=stp_date,
@@ -529,6 +559,13 @@ if __name__ == "__main__":
                 call_multiprocess=not args.nomp,
                 processes=args.processes,
             )
+        elif args.type == "portfolios":
+            print("This is for portfolios")
+        else:
+            raise ValueError(f"args.type == {args.type} is illegal")
+    elif args.switch == "evaluations":
+        if args.type == "models":
+            pass
         elif args.type == "portfolios":
             print("This is for portfolios")
         else:

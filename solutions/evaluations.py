@@ -7,8 +7,7 @@ from husfort.qutility import qtimer, error_handler, check_and_mkdir, SFG
 from husfort.qevaluation import CNAV
 from husfort.qsqlite import CMgrSqlDb, CDbStruct
 from husfort.qplot import CPlotLines
-from solutions.simulations import group_sim_args, group_sim_args_by_sector
-from solutions.shared import gen_nav_db
+from solutions.shared import gen_nav_db, group_sim_args, group_sim_args_by_sector
 from typedef import CSimArgs
 from typedef import TSimArgsPriKey, TSimArgsSecKey
 from typedef import TSimArgsPriKeyBySec, TSimArgsSecKeyBySec

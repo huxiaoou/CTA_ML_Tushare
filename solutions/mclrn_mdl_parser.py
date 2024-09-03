@@ -1,8 +1,6 @@
 import yaml
 import os
-from typedef import CTest, CRet, CModel
-from typedef import TReturnClass, TReturnNames, TFactorName
-# from typedef import TSigArgsSS, TSigArgsTSDB
+from typedef import TReturnClass, TReturnNames
 from itertools import product
 from husfort.qutility import check_and_makedirs
 
@@ -49,35 +47,3 @@ def load_config_models(cfg_mdl_dir: str, cfg_mdl_file: str) -> dict[str, dict]:
     with open(model_config_path, "r") as f:
         config_models = yaml.safe_load(f)
     return config_models
-
-
-def get_tests(config_models: dict[str, dict]) -> list[CTest]:
-    tests: list[CTest] = []
-    for unique_id, m in config_models.items():
-        ret = CRet(ret_class=m["ret_class"], ret_name=m["ret_name"], shift=m["shift"])
-        model = CModel(model_type=m["model_type"], model_args=m["model_args"])
-        test = CTest(unique_Id=unique_id, trn_win=m["trn_win"], sector=m["sector"], ret=ret, model=model)
-        tests.append(test)
-    return tests
-
-# def get_signal_args_ss(tests: list[CTest], prediction_dir: str, signals_dir: str) -> list[TSigArgsSS]:
-#     res: list[TSigArgsSS] = []
-#     for test in tests:
-#         input_dir = os.path.join(prediction_dir, test.save_tag_prd)
-#         output_dir = os.path.join(signals_dir, test.save_tag_prd)
-#         sid = test.ret.ret_name
-#         sig_args = TSigArgsSS((input_dir, output_dir, sid))
-#         res.append(sig_args)
-#     return res
-#
-#
-# def get_signal_args_tsdb(tests: list[CTest]) -> list[TSigArgsTSDB]:
-#     res: list[TSigArgsTSDB] = []
-#     for test in tests:
-#         # factor=f"signals.001L1-NEU.W060.TR01.Ridge-A00.AGR.M0005"
-#         # fields=["CloseRtn001L1-NEU"]
-#         factor = TFactorName(".".join(["signals"] + test.prefix))
-#         fields = TReturnNames([test.ret.ret_name])
-#         sig_args = TSigArgsTSDB((factor, fields))
-#         res.append(sig_args)
-#     return res

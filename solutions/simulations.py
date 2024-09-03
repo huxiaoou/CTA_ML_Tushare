@@ -1,107 +1,11 @@
 import multiprocessing as mp
 import pandas as pd
 from rich.progress import track, Progress
-from husfort.qutility import qtimer, error_handler, SFR, check_and_makedirs
+from husfort.qutility import qtimer, error_handler, check_and_makedirs
 from husfort.qcalendar import CCalendar
 from husfort.qsqlite import CMgrSqlDb
-from solutions.shared import gen_tst_ret_regrp_db, gen_sig_mdl_db, gen_nav_db
-from typedef import CTest, CSimArgs, CRet
-from typedef import TSimArgsGrp, TSimArgsPriKey, TSimArgsSecKey
-from typedef import TSimArgsGrpBySec, TSimArgsPriKeyBySec, TSimArgsSecKeyBySec
-
-
-def get_sim_args_from_tests(
-        tests: list[CTest], cost: float, test_return_dir: str, signals_mdl_dir: str
-) -> list[CSimArgs]:
-    res: list[CSimArgs] = []
-    for test in tests:
-        if test.ret.ret_name.startswith("Opn"):
-            tgt_ret_class, tgt_ret_name = "001L1", "OpnRtn001L1RAW"
-        elif test.ret.ret_name.startswith("Cls"):
-            tgt_ret_class, tgt_ret_name = "001L1", "ClsRtn001L1RAW"
-        else:
-            raise ValueError(f"ret_name = {SFR(test.ret.ret_name)} is illegal")
-        tgt_ret = CRet(tgt_ret_class, tgt_ret_name, 2)
-
-        db_struct_ret = gen_tst_ret_regrp_db(db_save_root_dir=test_return_dir, ret_name=tgt_ret_name)
-        db_struct_sig = gen_sig_mdl_db(db_save_root_dir=signals_mdl_dir, test=test)
-        sim_id = f"{test.save_tag_mdl}.T{tgt_ret_name}"
-
-        sim_arg = CSimArgs(
-            sim_id=sim_id,
-            sig_name=test.ret.ret_name,
-            tgt_ret=tgt_ret,
-            db_struct_sig=db_struct_sig,
-            db_struct_ret=db_struct_ret,
-            cost=cost,
-        )
-        res.append(sim_arg)
-    return res
-
-
-def group_sim_args(sim_args_lst: list[CSimArgs]) -> TSimArgsGrp:
-    grouped_sim_args: TSimArgsGrp = {}
-    for sim_arg in sim_args_lst:
-        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_arg.sim_id.split(".")
-        key0, key1 = TSimArgsPriKey((ret_class, trn_win, model_desc, ret_name)), TSimArgsSecKey((sector, unique_id))
-        if key0 not in grouped_sim_args:
-            grouped_sim_args[key0] = {}
-        grouped_sim_args[key0][key1] = sim_arg
-    return grouped_sim_args
-
-
-def group_sim_args_by_sector(sim_args: list[CSimArgs]) -> TSimArgsGrpBySec:
-    grouped_sim_args: TSimArgsGrpBySec = {}
-    for sim_arg in sim_args:
-        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_arg.sim_id.split(".")
-        key0, key1 = TSimArgsPriKeyBySec(sector), TSimArgsSecKeyBySec((ret_class, trn_win, model_desc, ret_name, unique_id))
-        if key0 not in grouped_sim_args:
-            grouped_sim_args[key0] = {}
-        grouped_sim_args[key0][key1] = sim_arg
-    return grouped_sim_args
-
-
-# @dataclass(frozen=True)
-# class CPortfolioArg:
-#     pid: str
-#     target: str
-#     weights: dict[str, float]
-#     portfolio_sim_args: dict[str, CSimArg]
-#
-#
-# def get_portfolio_args(portfolios: dict[str, dict], sim_args: list[CSimArg]) -> list[CPortfolioArg]:
-#     res: list[CPortfolioArg] = []
-#     for portfolio_id, portfolio_cfg in portfolios.items():
-#         target, weights = portfolio_cfg["target"], portfolio_cfg["weights"]
-#         portfolio_sim_args = {}
-#         for sim_arg in sim_args:
-#             *_, unique_id, ret_name = sim_arg.sim_id.split(".")
-#             if (unique_id in weights) and (ret_name == target):
-#                 portfolio_sim_args[unique_id] = sim_arg
-#         portfolio_arg = CPortfolioArg(portfolio_id, target, weights, portfolio_sim_args)
-#         res.append(portfolio_arg)
-#     return res
-#
-#
-# def get_sim_args_from_portfolios(
-#         portfolios: dict[str, dict], prefix_user: list[str], cost: float, shift: int
-# ) -> list[CSimArg]:
-#     res: list[CSimArg] = []
-#     for portfolio_id, portfolio_cfg in portfolios.items():
-#         target: str = portfolio_cfg["target"]
-#         sig = CSimSig(prefix=prefix_user + ["signals", "portfolios", portfolio_id], sid=target)
-#         if target.startswith("Open"):
-#             ret_class, ret_name = "001L1", "OpenRtn001L1"
-#             # ret_class, ret_name = "010L1", "OpenRtn010L1"
-#         elif target.startswith("Close"):
-#             ret_class, ret_name = "001L1", "CloseRtn001L1"
-#             # ret_class, ret_name = "010L1", "CloseRtn010L1"
-#         else:
-#             raise ValueError(f"ret_name = {target} is illegal")
-#         ret = CSimRet(prefix=prefix_user + ["Y"] + [ret_class], ret=ret_name, shift=shift)
-#         sim_arg = CSimArg(sim_id=portfolio_id, sig=sig, ret=ret, cost=cost)
-#         res.append(sim_arg)
-#     return res
+from solutions.shared import gen_nav_db
+from typedef import CSimArgs
 
 
 class CSim:

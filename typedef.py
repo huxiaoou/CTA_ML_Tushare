@@ -648,6 +648,14 @@ class CSimArgs:
     cost: float
 
 
+@dataclass(frozen=True)
+class CPortfolioArgs:
+    pid: str
+    target: str
+    weights: dict[str, float]
+    portfolio_sim_args: dict[str, CSimArgs]
+
+
 TSimArgsPriKey = tuple[str, str, str, str]  # ret_class, trn_win, model_desc, sector
 TSimArgsSecKey = tuple[str, str]  # sector, unique_id
 TSimArgsGrp = dict[TSimArgsPriKey, dict[TSimArgsSecKey, CSimArgs]]

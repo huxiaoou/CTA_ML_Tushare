@@ -5,7 +5,7 @@ from typedef import TFactorClass, TFactorNames, CTestFtSlc, CTestMdl, CSimArgs
 from typedef import CRet, CModel
 from typedef import TSimArgsGrp, TSimArgsPriKey, TSimArgsSecKey
 from typedef import TSimArgsGrpBySec, TSimArgsPriKeyBySec, TSimArgsSecKeyBySec
-from typedef import CPortfolioArgs
+from typedef import CPortfolioArgs, TUniqueId
 
 
 def convert_mkt_idx(mkt_idx: str, prefix: str = "I") -> str:
@@ -224,10 +224,10 @@ def get_portfolio_args(portfolios: dict[str, dict], sim_args_list: list[CSimArgs
     res: list[CPortfolioArgs] = []
     for portfolio_id, portfolio_cfg in portfolios.items():
         target, weights = portfolio_cfg["target"], portfolio_cfg["weights"]
-        portfolio_sim_args: dict[str, CSimArgs] = {}
+        portfolio_sim_args: dict[TUniqueId, CSimArgs] = {}
         for sim_args in sim_args_list:
-            *_, unique_id, ret_name, tgt_ret_name = sim_args.sim_id.split(".")
-            if (unique_id in weights) and (ret_name == target):
+            *_, unique_id, _, tgt_ret_name = sim_args.sim_id.split(".")
+            if (unique_id in weights) and (tgt_ret_name[1:] == target):
                 portfolio_sim_args[unique_id] = sim_args
         portfolio_arg = CPortfolioArgs(portfolio_id, target, weights, portfolio_sim_args)
         res.append(portfolio_arg)

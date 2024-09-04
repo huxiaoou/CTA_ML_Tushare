@@ -332,7 +332,7 @@ mclrn:
 # ------- portfolios -------
 portfolios:
   P00:
-    target: ClsRtn010L1NEU # Be consistent with Wins and Lags in CONST
+    target: ClsRtn001L1RAW
     weights:
       M0173: 3 # AGR Sharpe = 0.719, Calmar = 0.612, Sharpe + Calmar = 1.331, W240, LGBM, ClsRtn001L1RAW
       M0192: 1 # AUG Sharpe = 0.910, Calmar = 0.618, Sharpe + Calmar = 1.528, W240, LGBM, ClsRtn001L1RAW
@@ -341,7 +341,7 @@ portfolios:
       M0277: 3 # MTL Sharpe = 0.757, Calmar = 0.417, Sharpe + Calmar = 1.174, W480, LGBM, ClsRtn001L1RAW
       M0339: 3 # OIL Sharpe = 0.487, Calmar = 0.233, Sharpe + Calmar = 0.720, W720, LGBM, ClsRtn001L1RAW
   P01:
-    target: OpnRtn010L1NEU # Be consistent with Wins and Lags in CONST
+    target: OpnRtn001L1RAW
     weights:
       M0455: 3 # AGR Sharpe = 0.371, Calmar = 0.262, Sharpe + Calmar = 0.633, W120, LGBM, OpnRtn001L1RAW
       M0666: 1 # AUG Sharpe = 0.432, Calmar = 0.169, Sharpe + Calmar = 0.600, W720, LGBM, OpnRtn001L1RAW

@@ -620,7 +620,23 @@ if __name__ == "__main__":
                 processes=args.processes,
             )
         elif args.type == "portfolios":
-            raise NotImplementedError
+            from solutions.evaluations import main_eval_portfolios, main_plot_portfolios
+
+            main_eval_portfolios(
+                portfolios=proj_cfg.portfolios,
+                simu_pfo_dir=proj_cfg.simu_pfo_dir,
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                call_multiprocess=not args.nomp,
+                processes=args.processes,
+            )
+            main_plot_portfolios(
+                portfolios=proj_cfg.portfolios,
+                simu_pfo_dir=proj_cfg.simu_pfo_dir,
+                eval_pfo_dir=proj_cfg.eval_pfo_dir,
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+            )
         else:
             raise ValueError(f"args.type == {args.type} is illegal")
     else:

@@ -342,7 +342,7 @@ def main_eval_portfolios(
             evl_sims.append(evl)
 
     evl_data = pd.DataFrame(evl_sims)
-    evl_data = evl_data.sort_values(by="sharpeRatio", ascending=False)
+    evl_data = evl_data.sort_values(by="sharpe", ascending=False)
     pd.set_option("display.max_rows", 40)
     pd.set_option("display.float_format", lambda z: f"{z:.3f}")
     print("Portfolios performance")
@@ -359,7 +359,7 @@ def main_plot_portfolios(
 ):
     check_and_makedirs(fig_save_dir := os.path.join(eval_pfo_dir, "plot-by-portfolio"))
     ret = {}
-    for portfolio_id in track(portfolios, description=f"Plot simulations for portfolios"):
+    for portfolio_id in track(portfolios, description="Plot simulations for portfolios"):
         s = CEvlPfo(portfolio_id, simu_pfo_dir)
         ret[portfolio_id] = s.get_ret(bgn_date, stp_date)
     ret_df = pd.DataFrame(ret).fillna(0)

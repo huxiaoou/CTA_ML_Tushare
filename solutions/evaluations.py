@@ -310,7 +310,6 @@ def process_for_evl_portfolio(portfolio_id: str, simu_pfo_dir: str, bgn_date: st
     return s.main(bgn_date, stp_date)
 
 
-@qtimer
 def main_eval_portfolios(
         portfolios: dict[str, dict],
         simu_pfo_dir: str,
@@ -351,7 +350,6 @@ def main_eval_portfolios(
     return 0
 
 
-@qtimer
 def main_plot_portfolios(
         portfolios: dict[str, dict],
         simu_pfo_dir: str,
@@ -359,7 +357,7 @@ def main_plot_portfolios(
         bgn_date: str,
         stp_date: str,
 ):
-    check_and_mkdir(fig_save_dir := os.path.join(eval_pfo_dir, "plot-by-portfolio"))
+    check_and_makedirs(fig_save_dir := os.path.join(eval_pfo_dir, "plot-by-portfolio"))
     ret = {}
     for portfolio_id in track(portfolios, description=f"Plot simulations for portfolios"):
         s = CEvlPfo(portfolio_id, simu_pfo_dir)

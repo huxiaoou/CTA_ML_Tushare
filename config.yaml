@@ -1,16 +1,16 @@
 path:
   # --- shared
-  calendar_path: D:\OneDrive\Data\Calendar\cne_calendar.csv
-  root_dir: D:\OneDrive\Data\tushare
-  daily_data_root_dir: D:\OneDrive\Data\tushare\by_date
-  db_struct_path: D:\OneDrive\Data\tushare\db_struct.yaml
-  alternative_dir: D:\OneDrive\Data\Alternative
-  market_index_path: D:\OneDrive\Data\Market\index.xlsx
-  by_instru_pos_dir: D:\OneDrive\Data\tushare\by_instrument\position
-  by_instru_pre_dir: D:\OneDrive\Data\tushare\by_instrument\preprocess
+  calendar_path: E:\OneDrive\Data\Calendar\cne_calendar.csv
+  root_dir: E:\OneDrive\Data\tushare
+  daily_data_root_dir: E:\OneDrive\Data\tushare\by_date
+  db_struct_path: E:\OneDrive\Data\tushare\db_struct.yaml
+  alternative_dir: E:\OneDrive\Data\Alternative
+  market_index_path: E:\OneDrive\Data\Market\index.xlsx
+  by_instru_pos_dir: E:\OneDrive\Data\tushare\by_instrument\position
+  by_instru_pre_dir: E:\OneDrive\Data\tushare\by_instrument\preprocess
 
   # --- project
-  project_root_dir: D:\OneDrive\Data\Projects\CTA_ML_Tushare
+  project_root_dir: E:\OneDrive\Data\Projects\CTA_ML_Tushare
   available_dir: available
   market_dir: market
   test_return_dir: test_return

@@ -563,7 +563,45 @@ if __name__ == "__main__":
             raise ValueError(f"args.type == {args.type} is illegal")
     elif args.switch == "evaluations":
         if args.type == "models":
-            raise NotImplementedError
+            from solutions.mclrn_mdl_parser import load_config_models
+            from solutions.evaluations import main_eval_mdl, main_plot_sims, main_plot_sims_by_sector
+            from solutions.shared import gen_model_tests, get_sim_args_from_test_models
+
+            config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
+            test_mdls = gen_model_tests(config_models=config_models)
+            sim_args_list = get_sim_args_from_test_models(
+                test_mdls=test_mdls,
+                cost=proj_cfg.const.COST,
+                test_return_dir=proj_cfg.test_return_dir,
+                signals_mdl_dir=proj_cfg.signals_mdl_dir,
+            )
+
+            main_eval_mdl(
+                sim_args_list=sim_args_list,
+                simu_mdl_dir=proj_cfg.simu_mdl_dir,
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                call_multiprocess=not args.nomp,
+                processes=args.processes,
+            )
+            main_plot_sims(
+                sim_args_list=sim_args_list,
+                simu_mdl_dir=proj_cfg.simu_mdl_dir,
+                eval_mdl_dir=proj_cfg.eval_mdl_dir,
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                call_multiprocess=not args.nomp,
+                processes=args.processes,
+            )
+            main_plot_sims_by_sector(
+                sim_args_list=sim_args_list,
+                simu_mdl_dir=proj_cfg.simu_mdl_dir,
+                eval_mdl_dir=proj_cfg.eval_mdl_dir,
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                call_multiprocess=not args.nomp,
+                processes=args.processes,
+            )
         elif args.type == "portfolios":
             raise NotImplementedError
         else:

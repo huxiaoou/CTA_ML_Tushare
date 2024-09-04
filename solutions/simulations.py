@@ -43,6 +43,7 @@ class CSim:
     def reformat_ret(self, ret_data: pd.DataFrame) -> pd.DataFrame:
         new_data = ret_data.rename(mapper={self.sim_args.tgt_ret.ret_name: "ret"}, axis=1)
         new_data = new_data[["trade_date", "instrument", "ret"]].fillna(0)
+        new_data["ret"] = new_data["ret"] / self.sim_args.tgt_ret.win
         return new_data
 
     @staticmethod

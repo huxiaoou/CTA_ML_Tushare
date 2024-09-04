@@ -3,7 +3,7 @@ import multiprocessing as mp
 import numpy as np
 import pandas as pd
 from rich.progress import track, Progress
-from husfort.qutility import qtimer, error_handler, check_and_mkdir, SFG
+from husfort.qutility import error_handler, check_and_makedirs, SFG
 from husfort.qevaluation import CNAV
 from husfort.qsqlite import CMgrSqlDb, CDbStruct
 from husfort.qplot import CPlotLines
@@ -63,7 +63,7 @@ class CEvlMdl(CEvl):
         super().__init__(db_struct_nav)
 
     def add_arguments(self, res: dict):
-        ret_class, trn_win, model_desc, sector, unique_id, ret_name = self.sim_args.sim_id.split(".")
+        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = self.sim_args.sim_id.split(".")
         other_arguments = {
             "ret_class": ret_class,
             "trn_win": trn_win,
@@ -71,6 +71,7 @@ class CEvlMdl(CEvl):
             "sector": sector,
             "unique_id": unique_id,
             "ret_name": ret_name,
+            "ret_tgt": tgt_ret_name[1:],
         }
         res.update(other_arguments)
         return 0
@@ -81,9 +82,8 @@ def process_for_evl_mdl(sim_args: CSimArgs, simu_mdl_dir: str, bgn_date: str, st
     return s.main(bgn_date, stp_date)
 
 
-@qtimer
 def main_eval_mdl(
-        sim_args: list[CSimArgs],
+        sim_args_list: list[CSimArgs],
         simu_mdl_dir: str,
         bgn_date: str,
         stp_date: str,
@@ -94,13 +94,13 @@ def main_eval_mdl(
     evl_sims: list[dict] = []
     if call_multiprocess:
         with Progress() as pb:
-            main_task = pb.add_task(description=desc, total=len(sim_args))
+            main_task = pb.add_task(description=desc, total=len(sim_args_list))
             with mp.get_context("spawn").Pool(processes=processes) as pool:
                 jobs = []
-                for sim_arg in sim_args:
+                for sim_args in sim_args_list:
                     job = pool.apply_async(
                         process_for_evl_mdl,
-                        args=(sim_arg, simu_mdl_dir, bgn_date, stp_date),
+                        args=(sim_args, simu_mdl_dir, bgn_date, stp_date),
                         callback=lambda _: pb.update(main_task, advance=1),
                         error_callback=error_handler,
                     )
@@ -109,14 +109,16 @@ def main_eval_mdl(
                 pool.join()
             evl_sims = [job.get() for job in jobs]
     else:
-        for sim_arg in track(sim_args, description=desc):
-            evl = process_for_evl_mdl(sim_arg, simu_mdl_dir, bgn_date, stp_date)
+        for sim_args in track(sim_args_list, description=desc):
+            evl = process_for_evl_mdl(sim_args, simu_mdl_dir, bgn_date, stp_date)
             evl_sims.append(evl)
 
     evl_data = pd.DataFrame(evl_sims)
-    evl_data = evl_data.sort_values(by="sharpe", ascending=False)
+    evl_data["sharpe_plus_calmar"] = evl_data["sharpe"] + evl_data["calmar"]
+    evl_data = evl_data.sort_values(by="sharpe_plus_calmar", ascending=False)
     evl_data.insert(loc=0, column="calmar", value=evl_data.pop("calmar"))
     evl_data.insert(loc=0, column="sharpe", value=evl_data.pop("sharpe"))
+    evl_data.insert(loc=0, column="sharpe_plus_calmar", value=evl_data.pop("sharpe_plus_calmar"))
     evl_data.insert(loc=0, column="unique_id", value=evl_data.pop("unique_id"))
 
     pd.set_option("display.max_rows", 40)
@@ -130,12 +132,14 @@ def main_eval_mdl(
 
     # --- print sector models picked for portfolio
     print("\n" + "-" * 180)
-    print("sector models picked for portfolio")
+    print(f"{SFG('sector models picked for portfolio')}")
     for (ret_name, sector), ret_name_data in evl_data.groupby(by=["ret_name", "sector"]):
         print("\n") if sector == "AGR" else 0
         uid = ret_name_data["unique_id"].iloc[0]
         sharpe, calmar = ret_name_data["sharpe"].iloc[0], ret_name_data["calmar"].iloc[0]
+        sharpe_plus_calmar = ret_name_data["sharpe_plus_calmar"].iloc[0]
         win, mdl_desc = ret_name_data["trn_win"].iloc[0], ret_name_data["model_desc"].iloc[0]
+        ret_tgt = ret_name_data["ret_tgt"].iloc[0]
         w = {
             "AUG": 1,
             "MTL": 3,
@@ -145,7 +149,11 @@ def main_eval_mdl(
             "OIL": 3,
             "EQT": 3,
         }[sector]
-        print(f"{uid}: {w} # {sector} Sharpe = {sharpe:.3f}, Calmar = {calmar:.3f}, {win}, {mdl_desc}")
+        print(
+            f"{uid}: {w} # {sector} "
+            f"Sharpe = {sharpe:.3f}, Calmar = {calmar:.3f}, Sharpe + Calmar = {sharpe_plus_calmar:.3f}, "
+            f"{win}, {mdl_desc}, {ret_tgt}"
+        )
     return 0
 
 
@@ -182,22 +190,22 @@ def process_for_plot(
     return 0
 
 
-@qtimer
 def main_plot_sims(
-        sim_args: list[CSimArgs],
+        sim_args_list: list[CSimArgs],
         simu_mdl_dir: str,
         eval_mdl_dir: str,
         bgn_date: str,
         stp_date: str,
         call_multiprocess: bool,
+        processes: int,
 ):
-    check_and_mkdir(fig_save_dir := os.path.join(eval_mdl_dir, "plot"))
+    check_and_makedirs(fig_save_dir := os.path.join(eval_mdl_dir, "plot"))
     desc = "Plotting nav ..."
-    grouped_sim_args = group_sim_args(sim_args_lst=sim_args)
+    grouped_sim_args = group_sim_args(sim_args_list=sim_args_list)
     if call_multiprocess:
         with Progress() as pb:
             main_task = pb.add_task(description=desc, total=len(grouped_sim_args))
-            with mp.get_context("spawn").Pool() as pool:
+            with mp.get_context("spawn").Pool(processes=processes) as pool:
                 for group_key, sub_grouped_sim_args in grouped_sim_args.items():
                     pool.apply_async(
                         process_for_plot,
@@ -249,22 +257,22 @@ def process_for_plot_by_sector(
     return 0
 
 
-@qtimer
 def main_plot_sims_by_sector(
-        sim_args: list[CSimArgs],
+        sim_args_list: list[CSimArgs],
         simu_mdl_dir: str,
         eval_mdl_dir: str,
         bgn_date: str,
         stp_date: str,
         call_multiprocess: bool,
+        processes: int,
 ):
-    check_and_mkdir(fig_save_dir := os.path.join(eval_mdl_dir, "plot-by-sector"))
-    grouped_sim_args = group_sim_args_by_sector(sim_args=sim_args)
+    check_and_makedirs(fig_save_dir := os.path.join(eval_mdl_dir, "plot-by-sector"))
+    grouped_sim_args = group_sim_args_by_sector(sim_args_list=sim_args_list)
     desc = "Plotting nav by sector ..."
     if call_multiprocess:
         with Progress() as pb:
             main_task = pb.add_task(description=desc, total=len(grouped_sim_args))
-            with mp.get_context("spawn").Pool() as pool:
+            with mp.get_context("spawn").Pool(processes=processes) as pool:
                 for sector, sector_sim_args in grouped_sim_args.items():
                     pool.apply_async(
                         process_for_plot_by_sector,

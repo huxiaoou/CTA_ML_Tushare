@@ -587,6 +587,10 @@ class CRet:
     def desc(self) -> str:
         return f"{self.ret_class}.{self.ret_name}"
 
+    @property
+    def win(self) -> int:
+        return int(self.ret_class[0:3])  # "001L1"-> 1
+
 
 @dataclass(frozen=True)
 class CTestFtSlc:

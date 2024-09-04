@@ -13,11 +13,11 @@ Part I: Signals from single mdl
 
 
 class CSignal:
-    def __init__(self, input_dir: str, output_dir: str, test: CTestMdl, maw: int):
-        self.test = test
+    def __init__(self, input_dir: str, output_dir: str, test_mdl: CTestMdl, maw: int):
+        self.test_mdl = test_mdl
         self.maw = maw  # moving average window
-        self.db_struct_prd = gen_prdct_db(db_save_root_dir=input_dir, test=test)
-        self.db_struct_sig = gen_sig_mdl_db(db_save_root_dir=output_dir, test=test)
+        self.db_struct_prd = gen_prdct_db(db_save_root_dir=input_dir, test=test_mdl)
+        self.db_struct_sig = gen_sig_mdl_db(db_save_root_dir=output_dir, test=test_mdl)
 
     def load_input(self, bgn_date: str, stp_date: str, calendar: CCalendar) -> pd.DataFrame:
         base_bgn_date = calendar.get_next_date(bgn_date, -self.maw + 1)
@@ -31,7 +31,7 @@ class CSignal:
         return prd_data
 
     def process_nan(self, data: pd.DataFrame) -> pd.DataFrame:
-        return data.dropna(axis=0, subset=[self.test.ret.ret_name], how="any")
+        return data.dropna(axis=0, subset=[self.test_mdl.ret.ret_name], how="any")
 
     def cal_signal(self, clean_data: pd.DataFrame) -> pd.DataFrame:
         """
@@ -46,13 +46,13 @@ class CSignal:
             data=signal_data,
             index=["trade_date"],
             columns=["instrument"],
-            values=[self.test.ret.ret_name],
+            values=[self.test_mdl.ret.ret_name],
         )
         instru_ma_data = pivot_data.fillna(0).rolling(window=self.maw).mean()
         truncated_data = instru_ma_data.query(f"trade_date >= '{bgn_date}'")
         normalize_data = truncated_data.div(truncated_data.abs().sum(axis=1), axis=0).fillna(0)
         stack_data = normalize_data.stack(future_stack=True).reset_index()
-        return stack_data[["trade_date", "instrument", self.test.ret.ret_name]]
+        return stack_data[["trade_date", "instrument", self.test_mdl.ret.ret_name]]
 
     def main(self, bgn_date: str, stp_date: str, calendar: CCalendar):
         check_and_makedirs(self.db_struct_sig.db_save_dir)
@@ -83,31 +83,31 @@ class CSignalCrsSec(CSignal):
 
     def cal_signal(self, clean_data: pd.DataFrame) -> pd.DataFrame:
         sorted_data = clean_data.sort_values(
-            by=["trade_date", self.test.ret.ret_name, "instrument"], ascending=[True, False, True]
+            by=["trade_date", self.test_mdl.ret.ret_name, "instrument"], ascending=[True, False, True]
         )
         grouped_data = sorted_data.groupby(by=["trade_date"], group_keys=False)
         signal_data = grouped_data.apply(self.map_prediction_to_signal)
-        signal_data.rename(mapper={"signal": self.test.ret.ret_name}, axis=1, inplace=True)
+        signal_data.rename(mapper={"signal": self.test_mdl.ret.ret_name}, axis=1, inplace=True)
         return signal_data
 
 
 def process_for_signal(
         input_dir: str,
         output_dir: str,
-        test: CTestMdl,
+        test_mdl: CTestMdl,
         maw: int,
         bgn_date: str,
         stp_date: str,
         calendar: CCalendar,
 ):
-    signal = CSignalCrsSec(input_dir=input_dir, output_dir=output_dir, test=test, maw=maw)
+    signal = CSignalCrsSec(input_dir=input_dir, output_dir=output_dir, test_mdl=test_mdl, maw=maw)
     signal.main(bgn_date, stp_date, calendar)
     return 0
 
 
 @qtimer
 def main_signals_models(
-        tests: list[CTestMdl],
+        test_mdls: list[CTestMdl],
         prd_save_root_dir: str,
         sig_mdl_save_root_dir: str,
         maw: int,
@@ -120,15 +120,15 @@ def main_signals_models(
     desc = "Translating prediction to signals"
     if call_multiprocess:
         with Progress() as pb:
-            main_task = pb.add_task(description=desc, total=len(tests))
+            main_task = pb.add_task(description=desc, total=len(test_mdls))
             with mp.get_context("spawn").Pool(processes) as pool:
-                for test in tests:
+                for test_mdl in test_mdls:
                     pool.apply_async(
                         process_for_signal,
                         kwds={
                             "input_dir": prd_save_root_dir,
                             "output_dir": sig_mdl_save_root_dir,
-                            "test": test,
+                            "test_mdl": test_mdl,
                             "maw": maw,
                             "bgn_date": bgn_date,
                             "stp_date": stp_date,
@@ -140,11 +140,11 @@ def main_signals_models(
                 pool.close()
                 pool.join()
     else:
-        for test in track(tests, description=desc):
+        for test_mdl in track(test_mdls, description=desc):
             process_for_signal(
                 input_dir=prd_save_root_dir,
                 output_dir=sig_mdl_save_root_dir,
-                test=test,
+                test_mdl=test_mdl,
                 maw=maw,
                 bgn_date=bgn_date,
                 stp_date=stp_date,

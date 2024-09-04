@@ -432,7 +432,7 @@ if __name__ == "__main__":
             CRet(ret_class=proj_cfg.const.RET_CLASS, ret_name=n, shift=proj_cfg.const.SHIFT)
             for n in proj_cfg.const.RET_NAMES
         ]
-        tests = get_feature_selection_tests(
+        test_mdls = get_feature_selection_tests(
             trn_wins=proj_cfg.trn.wins,
             sectors=proj_cfg.const.SECTORS,
             rets=rets,
@@ -440,7 +440,7 @@ if __name__ == "__main__":
         main_feature_selection(
             threshold=proj_cfg.feat_slc.mut_info_threshold,
             min_feats=proj_cfg.feat_slc.min_feats,
-            tests=tests,
+            tests=test_mdls,
             feat_slc_save_root_dir=proj_cfg.feature_selection_dir,
             tst_ret_save_root_dir=proj_cfg.test_return_dir,
             db_struct_avlb=db_struct_cfg.available,
@@ -470,9 +470,9 @@ if __name__ == "__main__":
             from solutions.shared import gen_model_tests
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
-            tests = gen_model_tests(config_models=config_models)
+            test_mdls = gen_model_tests(config_models=config_models)
             main_train_and_predict(
-                tests=tests,
+                tests=test_mdls,
                 tst_ret_save_root_dir=proj_cfg.test_return_dir,
                 factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
                 neutral_by_instru_dir=proj_cfg.neutral_by_instru_dir,
@@ -497,9 +497,9 @@ if __name__ == "__main__":
             from solutions.shared import gen_model_tests
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
-            tests = gen_model_tests(config_models=config_models)
+            test_mdls = gen_model_tests(config_models=config_models)
             main_signals_models(
-                tests=tests,
+                test_mdls=test_mdls,
                 prd_save_root_dir=proj_cfg.mclrn_prd_dir,
                 sig_mdl_save_root_dir=proj_cfg.signals_mdl_dir,
                 maw=proj_cfg.const.MAW,
@@ -515,14 +515,13 @@ if __name__ == "__main__":
             from solutions.shared import gen_model_tests, get_portfolio_args, get_sim_args_from_model_tests
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
-            tests = gen_model_tests(config_models=config_models)
+            test_mdls = gen_model_tests(config_models=config_models)
             simu_args_list = get_sim_args_from_model_tests(
-                tests=tests,
+                tests=test_mdls,
                 cost=proj_cfg.const.COST,
                 test_return_dir=proj_cfg.test_return_dir,
                 signals_mdl_dir=proj_cfg.signals_mdl_dir,
             )
-
             portfolio_args = get_portfolio_args(proj_cfg.portfolios, sim_args_list=simu_args_list)
             main_signals_portfolios(
                 portfolio_args=portfolio_args,
@@ -533,7 +532,6 @@ if __name__ == "__main__":
                 call_multiprocess=not args.nomp,
                 processes=args.processes,
             )
-
         else:
             raise ValueError(f"args.type == {args.type} is illegal")
     elif args.switch == "simulations":
@@ -543,9 +541,9 @@ if __name__ == "__main__":
             from solutions.shared import gen_model_tests, get_sim_args_from_model_tests
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
-            tests = gen_model_tests(config_models=config_models)
+            test_mdls = gen_model_tests(config_models=config_models)
             simu_args_list = get_sim_args_from_model_tests(
-                tests=tests,
+                tests=test_mdls,
                 cost=proj_cfg.const.COST,
                 test_return_dir=proj_cfg.test_return_dir,
                 signals_mdl_dir=proj_cfg.signals_mdl_dir,

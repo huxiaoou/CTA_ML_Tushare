@@ -558,7 +558,24 @@ if __name__ == "__main__":
                 processes=args.processes,
             )
         elif args.type == "portfolios":
-            raise NotImplementedError
+            from solutions.shared import get_sim_args_from_portfolios
+            from solutions.simulations import main_simulations
+
+            sim_args_list = get_sim_args_from_portfolios(
+                portfolios=proj_cfg.portfolios,
+                cost=proj_cfg.const.COST,
+                test_return_dir=proj_cfg.test_return_dir,
+                signals_pfo_dir=proj_cfg.signals_pfo_dir,
+            )
+            main_simulations(
+                sim_args_list=sim_args_list,
+                sim_save_dir=proj_cfg.simu_pfo_dir,
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                calendar=calendar,
+                call_multiprocess=not args.nomp,
+                processes=args.processes,
+            )
         else:
             raise ValueError(f"args.type == {args.type} is illegal")
     elif args.switch == "evaluations":

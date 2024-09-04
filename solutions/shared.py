@@ -171,7 +171,7 @@ def get_sim_args_from_test_models(
 
 
 def get_sim_args_from_portfolios(
-        portfolios: dict[str, dict], cost: float, test_return_dir: str, signals_pfo_dir: str
+        portfolios: dict[TUniqueId, dict], cost: float, test_return_dir: str, signals_pfo_dir: str
 ) -> list[CSimArgs]:
     res: list[CSimArgs] = []
     for portfolio_id, portfolio_cfg in portfolios.items():
@@ -220,7 +220,7 @@ def group_sim_args_by_sector(sim_args_list: list[CSimArgs]) -> TSimArgsGrpBySec:
     return grouped_sim_args
 
 
-def get_portfolio_args(portfolios: dict[str, dict], sim_args_list: list[CSimArgs]) -> list[CPortfolioArgs]:
+def get_portfolio_args(portfolios: dict[TUniqueId, dict], sim_args_list: list[CSimArgs]) -> list[CPortfolioArgs]:
     res: list[CPortfolioArgs] = []
     for portfolio_id, portfolio_cfg in portfolios.items():
         target, weights = portfolio_cfg["target"], portfolio_cfg["weights"]

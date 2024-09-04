@@ -650,7 +650,6 @@ class CTestMdl:
 @dataclass(frozen=True)
 class CSimArgs:
     sim_id: str
-    sig_name: str
     tgt_ret: CRet
     db_struct_sig: CDbStruct
     db_struct_ret: CDbStruct

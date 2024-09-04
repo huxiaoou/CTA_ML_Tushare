@@ -512,17 +512,17 @@ if __name__ == "__main__":
         elif args.type == "portfolios":
             from solutions.mclrn_mdl_parser import load_config_models
             from solutions.signals_pfo import main_signals_portfolios
-            from solutions.shared import gen_model_tests, get_portfolio_args, get_sim_args_from_model_tests
+            from solutions.shared import gen_model_tests, get_portfolio_args, get_sim_args_from_test_models
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
             test_mdls = gen_model_tests(config_models=config_models)
-            simu_args_list = get_sim_args_from_model_tests(
-                tests=test_mdls,
+            sim_args_list = get_sim_args_from_test_models(
+                test_mdls=test_mdls,
                 cost=proj_cfg.const.COST,
                 test_return_dir=proj_cfg.test_return_dir,
                 signals_mdl_dir=proj_cfg.signals_mdl_dir,
             )
-            portfolio_args = get_portfolio_args(proj_cfg.portfolios, sim_args_list=simu_args_list)
+            portfolio_args = get_portfolio_args(proj_cfg.portfolios, sim_args_list=sim_args_list)
             main_signals_portfolios(
                 portfolio_args=portfolio_args,
                 signals_pfo_dir=proj_cfg.signals_pfo_dir,
@@ -538,18 +538,18 @@ if __name__ == "__main__":
         if args.type == "models":
             from solutions.mclrn_mdl_parser import load_config_models
             from solutions.simulations import main_simulations
-            from solutions.shared import gen_model_tests, get_sim_args_from_model_tests
+            from solutions.shared import gen_model_tests, get_sim_args_from_test_models
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
             test_mdls = gen_model_tests(config_models=config_models)
-            simu_args_list = get_sim_args_from_model_tests(
-                tests=test_mdls,
+            sim_args_list = get_sim_args_from_test_models(
+                test_mdls=test_mdls,
                 cost=proj_cfg.const.COST,
                 test_return_dir=proj_cfg.test_return_dir,
                 signals_mdl_dir=proj_cfg.signals_mdl_dir,
             )
             main_simulations(
-                sim_args=simu_args_list,
+                sim_args_list=sim_args_list,
                 sim_save_dir=proj_cfg.simu_mdl_dir,
                 bgn_date=bgn_date,
                 stp_date=stp_date,
@@ -558,14 +558,14 @@ if __name__ == "__main__":
                 processes=args.processes,
             )
         elif args.type == "portfolios":
-            print("This is for portfolios")
+            raise NotImplementedError
         else:
             raise ValueError(f"args.type == {args.type} is illegal")
     elif args.switch == "evaluations":
         if args.type == "models":
-            pass
+            raise NotImplementedError
         elif args.type == "portfolios":
-            print("This is for portfolios")
+            raise NotImplementedError
         else:
             raise ValueError(f"args.type == {args.type} is illegal")
     else:

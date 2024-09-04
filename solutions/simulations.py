@@ -34,8 +34,9 @@ class CSim:
         data = sqldb.read_by_range(bgn_date, stp_date)
         return data
 
-    def reformat_sig(self, sig_data: pd.DataFrame) -> pd.DataFrame:
-        new_data = sig_data.rename(mapper={self.sim_args.sig_name: "sig"}, axis=1)
+    @staticmethod
+    def reformat_sig(sig_data: pd.DataFrame) -> pd.DataFrame:
+        new_data = sig_data.rename(mapper={"weight": "sig"}, axis=1)
         new_data = new_data[["trade_date", "instrument", "sig"]].fillna(0)
         return new_data
 
@@ -111,20 +112,20 @@ class CSim:
 
 
 def process_for_sim(
-        sim_arg: CSimArgs,
+        sim_args: CSimArgs,
         sim_save_dir: str,
         bgn_date: str,
         stp_date: str,
         calendar: CCalendar,
 ):
-    sim = CSim(sim_args=sim_arg, sim_save_dir=sim_save_dir)
+    sim = CSim(sim_args=sim_args, sim_save_dir=sim_save_dir)
     sim.main(bgn_date, stp_date, calendar)
     return 0
 
 
 @qtimer
 def main_simulations(
-        sim_args: list[CSimArgs],
+        sim_args_list: list[CSimArgs],
         sim_save_dir: str,
         bgn_date: str,
         stp_date: str,
@@ -135,13 +136,13 @@ def main_simulations(
     desc = "Calculating simulations"
     if call_multiprocess:
         with Progress() as pb:
-            main_task = pb.add_task(description=desc, total=len(sim_args))
-            with mp.get_context("spawn").Pool(processes) as pool:
-                for sim_arg in sim_args:
+            main_task = pb.add_task(description=desc, total=len(sim_args_list))
+            with mp.get_context("spawn").Pool(processes=processes) as pool:
+                for sim_args in sim_args_list:
                     pool.apply_async(
                         process_for_sim,
                         kwds={
-                            "sim_arg": sim_arg,
+                            "sim_args": sim_args,
                             "sim_save_dir": sim_save_dir,
                             "bgn_date": bgn_date,
                             "stp_date": stp_date,
@@ -153,9 +154,9 @@ def main_simulations(
                 pool.close()
                 pool.join()
     else:
-        for sim_arg in track(sim_args, description=desc):
+        for sim_args in track(sim_args_list, description=desc):
             process_for_sim(
-                sim_arg=sim_arg,
+                sim_args=sim_args,
                 sim_save_dir=sim_save_dir,
                 bgn_date=bgn_date,
                 stp_date=stp_date,

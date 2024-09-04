@@ -143,25 +143,51 @@ def gen_model_tests(config_models: dict[str, dict]) -> list[CTestMdl]:
     return tests
 
 
-def get_sim_args_from_model_tests(
-        tests: list[CTestMdl], cost: float, test_return_dir: str, signals_mdl_dir: str
+def get_sim_args_from_test_models(
+        test_mdls: list[CTestMdl], cost: float, test_return_dir: str, signals_mdl_dir: str
 ) -> list[CSimArgs]:
     res: list[CSimArgs] = []
-    for test in tests:
-        if test.ret.ret_name.startswith("Opn"):
+    for test_mdl in test_mdls:
+        if test_mdl.ret.ret_name.startswith("Opn"):
             tgt_ret_class, tgt_ret_name = "001L1", "OpnRtn001L1RAW"
-        elif test.ret.ret_name.startswith("Cls"):
+        elif test_mdl.ret.ret_name.startswith("Cls"):
             tgt_ret_class, tgt_ret_name = "001L1", "ClsRtn001L1RAW"
         else:
-            raise ValueError(f"ret_name = {SFR(test.ret.ret_name)} is illegal")
+            raise ValueError(f"ret_name = {SFR(test_mdl.ret.ret_name)} is illegal")
         tgt_ret = CRet(tgt_ret_class, tgt_ret_name, 2)
 
         db_struct_ret = gen_tst_ret_regrp_db(db_save_root_dir=test_return_dir, ret_name=tgt_ret_name)
-        db_struct_sig = gen_sig_mdl_db(db_save_root_dir=signals_mdl_dir, test=test)
-        sim_id = f"{test.save_tag_mdl}.T{tgt_ret_name}"
+        db_struct_sig = gen_sig_mdl_db(db_save_root_dir=signals_mdl_dir, test=test_mdl)
+        sim_id = f"{test_mdl.save_tag_mdl}.T{tgt_ret_name}"
         sim_args = CSimArgs(
             sim_id=sim_id,
-            sig_name=test.ret.ret_name,
+            tgt_ret=tgt_ret,
+            db_struct_sig=db_struct_sig,
+            db_struct_ret=db_struct_ret,
+            cost=cost,
+        )
+        res.append(sim_args)
+    return res
+
+
+def get_sim_args_from_portfolios(
+        portfolios: dict[str, dict], cost: float, test_return_dir: str, signals_pfo_dir: str
+) -> list[CSimArgs]:
+    res: list[CSimArgs] = []
+    for portfolio_id, portfolio_cfg in portfolios.items():
+        target: str = portfolio_cfg["target"]
+        if target.startswith("Opn"):
+            tgt_ret_class, tgt_ret_name = "001L1", "OpnRtn001L1RAW"
+        elif target.startswith("Cls"):
+            tgt_ret_class, tgt_ret_name = "001L1", "ClsRtn001L1RAW"
+        else:
+            raise ValueError(f"target = {target} is illegal")
+        tgt_ret = CRet(tgt_ret_class, tgt_ret_name, 2)
+
+        db_struct_ret = gen_tst_ret_regrp_db(db_save_root_dir=test_return_dir, ret_name=tgt_ret_name)
+        db_struct_sig = gen_sig_pfo_db(db_save_root_dir=signals_pfo_dir, portfolio_id=portfolio_id)
+        sim_args = CSimArgs(
+            sim_id=portfolio_id,
             tgt_ret=tgt_ret,
             db_struct_sig=db_struct_sig,
             db_struct_ret=db_struct_ret,
@@ -205,32 +231,4 @@ def get_portfolio_args(portfolios: dict[str, dict], sim_args_list: list[CSimArgs
                 portfolio_sim_args[unique_id] = sim_args
         portfolio_arg = CPortfolioArgs(portfolio_id, target, weights, portfolio_sim_args)
         res.append(portfolio_arg)
-    return res
-
-
-def get_sim_args_from_portfolios(
-        portfolios: dict[str, dict], cost: float, test_return_dir: str, signals_pfo_dir: str
-) -> list[CSimArgs]:
-    res: list[CSimArgs] = []
-    for portfolio_id, portfolio_cfg in portfolios.items():
-        target: str = portfolio_cfg["target"]
-        if target.startswith("Opn"):
-            tgt_ret_class, tgt_ret_name = "001L1", "OpnRtn001L1RAW"
-        elif target.startswith("Cls"):
-            tgt_ret_class, tgt_ret_name = "001L1", "ClsRtn001L1RAW"
-        else:
-            raise ValueError(f"target = {target} is illegal")
-        tgt_ret = CRet(tgt_ret_class, tgt_ret_name, 2)
-
-        db_struct_ret = gen_tst_ret_regrp_db(db_save_root_dir=test_return_dir, ret_name=tgt_ret_name)
-        db_struct_sig = gen_sig_pfo_db(db_save_root_dir=signals_pfo_dir, portfolio_id=portfolio_id, target=target)
-        sim_args = CSimArgs(
-            sim_id=portfolio_id,
-            sig_name=target,
-            tgt_ret=tgt_ret,
-            db_struct_sig=db_struct_sig,
-            db_struct_ret=db_struct_ret,
-            cost=cost,
-        )
-        res.append(sim_args)
     return res

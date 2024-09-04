@@ -94,19 +94,19 @@ def gen_sig_mdl_db(db_save_root_dir: str, test: CTestMdl) -> CDbStruct:
         table=CSqlTable(
             name="signals",
             primary_keys=[CSqlVar("trade_date", "TEXT"), CSqlVar("instrument", "TEXT")],
-            value_columns=[CSqlVar(test.ret.ret_name, "REAL")],
+            value_columns=[CSqlVar("weight", "REAL")],
         )
     )
 
 
-def gen_sig_pfo_db(db_save_root_dir: str, portfolio_id: str, target: str) -> CDbStruct:
+def gen_sig_pfo_db(db_save_root_dir: str, portfolio_id: str) -> CDbStruct:
     return CDbStruct(
         db_save_dir=db_save_root_dir,
         db_name=f"{portfolio_id}.db",
         table=CSqlTable(
             name="signals",
             primary_keys=[CSqlVar("trade_date", "TEXT"), CSqlVar("instrument", "TEXT")],
-            value_columns=[CSqlVar(target, "REAL")],
+            value_columns=[CSqlVar("weight", "REAL")],
         )
     )
 

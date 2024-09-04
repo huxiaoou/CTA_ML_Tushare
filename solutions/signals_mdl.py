@@ -46,13 +46,13 @@ class CSignal:
             data=signal_data,
             index=["trade_date"],
             columns=["instrument"],
-            values=[self.test_mdl.ret.ret_name],
+            values=["weight"],
         )
         instru_ma_data = pivot_data.fillna(0).rolling(window=self.maw).mean()
         truncated_data = instru_ma_data.query(f"trade_date >= '{bgn_date}'")
         normalize_data = truncated_data.div(truncated_data.abs().sum(axis=1), axis=0).fillna(0)
         stack_data = normalize_data.stack(future_stack=True).reset_index()
-        return stack_data[["trade_date", "instrument", self.test_mdl.ret.ret_name]]
+        return stack_data[["trade_date", "instrument", "weight"]]
 
     def main(self, bgn_date: str, stp_date: str, calendar: CCalendar):
         check_and_makedirs(self.db_struct_sig.db_save_dir)
@@ -76,10 +76,10 @@ class CSignalCrsSec(CSignal):
     def map_prediction_to_signal(data: pd.DataFrame) -> pd.DataFrame:
         n = len(data)
         s = [1] * int(n / 2) + [0] * (n % 2) + [-1] * int(n / 2)
-        data["signal"] = s
-        if (abs_sum := data["signal"].abs().sum()) > 0:
-            data["signal"] = data["signal"] / abs_sum
-        return data[["trade_date", "instrument", "signal"]]
+        data["weight"] = s
+        if (abs_sum := data["weight"].abs().sum()) > 0:
+            data["weight"] = data["weight"] / abs_sum
+        return data[["trade_date", "instrument", "weight"]]
 
     def cal_signal(self, clean_data: pd.DataFrame) -> pd.DataFrame:
         sorted_data = clean_data.sort_values(
@@ -87,7 +87,6 @@ class CSignalCrsSec(CSignal):
         )
         grouped_data = sorted_data.groupby(by=["trade_date"], group_keys=False)
         signal_data = grouped_data.apply(self.map_prediction_to_signal)
-        signal_data.rename(mapper={"signal": self.test_mdl.ret.ret_name}, axis=1, inplace=True)
         return signal_data
 
 

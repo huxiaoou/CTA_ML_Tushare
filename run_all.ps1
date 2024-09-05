@@ -7,7 +7,7 @@ $stp_date = "20240826"
 # ------------------------
 # --- remove existence ---
 # ------------------------
-Remove-Item -Recurse d:\OneDrive\Data\Projects\CTA_ML_Tushare\*
+Remove-Item -Recurse E:\OneDrive\Data\Projects\CTA_ML_Tushare\*
 
 # ----------------------------
 # --- exectue all projects ---
@@ -42,9 +42,9 @@ python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNOI
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNDOI
 
 # --- machine learning
-python main.py --bgn $bgn_date_ml --stp $stp_date --processes 4 feature_selection
+python main.py --bgn $bgn_date_ml --stp $stp_date --processes 16 feature_selection
 python main.py --bgn $bgn_date_ml --stp $stp_date mclrn --type parse
-python main.py --bgn $bgn_date_ml --stp $stp_date --processes 5 mclrn --type trnprd
+python main.py --bgn $bgn_date_ml --stp $stp_date --processes 16 mclrn --type trnprd
 
 # --- model signals and simulation ---
 python main.py --bgn $bgn_date_sig --stp $stp_date signals --type models

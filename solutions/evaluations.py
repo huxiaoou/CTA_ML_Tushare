@@ -342,7 +342,12 @@ def main_eval_portfolios(
             evl_sims.append(evl)
 
     evl_data = pd.DataFrame(evl_sims)
-    evl_data = evl_data.sort_values(by="sharpe", ascending=False)
+    evl_data["sharpe_plus_calmar"] = evl_data["sharpe"] + evl_data["calmar"]
+    evl_data = evl_data.sort_values(by="sharpe_plus_calmar", ascending=False)
+    evl_data.insert(loc=0, column="calmar", value=evl_data.pop("calmar"))
+    evl_data.insert(loc=0, column="sharpe", value=evl_data.pop("sharpe"))
+    evl_data.insert(loc=0, column="sharpe_plus_calmar", value=evl_data.pop("sharpe_plus_calmar"))
+    evl_data.insert(loc=0, column="portfolioId", value=evl_data.pop("portfolioId"))
     pd.set_option("display.max_rows", 40)
     pd.set_option("display.float_format", lambda z: f"{z:.3f}")
     print("Portfolios performance")

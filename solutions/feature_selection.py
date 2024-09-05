@@ -5,11 +5,11 @@ from loguru import logger
 from itertools import product
 from rich.progress import track, Progress
 from sklearn.feature_selection import mutual_info_regression
-from husfort.qutility import qtimer, SFG, SFY, SFR, error_handler, check_and_makedirs
+from husfort.qutility import qtimer, SFG, SFY, error_handler, check_and_makedirs
 from husfort.qcalendar import CCalendar
 from husfort.qsqlite import CDbStruct, CMgrSqlDb
 from typedef import TUniverse, TReturnName
-from typedef import TFactor, TFactorClass, TFactorName, TFactorNames, TFactorComb, TFactorsPool
+from typedef import TFactorClass, TFactorName, TFactorNames, TFactorComb, TFactorsPool
 from typedef import CTestFtSlc, CRet
 from solutions.shared import gen_fac_db, gen_tst_ret_db, gen_feat_slc_db
 

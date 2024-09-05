@@ -7,9 +7,9 @@ $stp_date = "20240826"
 # ------------------------
 # --- remove existence ---
 # ------------------------
-Remove-Item -Recurse E:\OneDrive\Data\Projects\CTA_ML_Tushare\signals\portfolios\*
-Remove-Item -Recurse E:\OneDrive\Data\Projects\CTA_ML_Tushare\simulations\portfolios\*
-Remove-Item -Recurse E:\OneDrive\Data\Projects\CTA_ML_Tushare\evaluations\portfolios\*
+Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\signals\portfolios\*
+Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\simulations\portfolios\*
+Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\evaluations\portfolios\*
 
 # ----------------------------
 # --- exectue all projects ---

@@ -206,7 +206,10 @@ class CMclrn:
         model_file = f"{self.test.save_tag_mdl}.skops"
         model_path = os.path.join(self.mclrn_mdl_dir, month_id, model_file)
         if os.path.exists(model_path):
-            self.fitted_estimator = sio.load(model_path, trusted=True)
+            self.fitted_estimator = sio.load(
+                model_path,
+                trusted=['collections.defaultdict', 'lightgbm.basic.Booster', 'lightgbm.sklearn.LGBMRegressor'],
+            )
             return True
         else:
             if verbose:
@@ -390,6 +393,7 @@ class CMclrnLGBM(CMclrnFromFeatureSelection):
             force_row_wise=True,
             verbose=-1,
             random_state=self.RANDOM_STATE,
+            device_type="gpu",
         )
 
 

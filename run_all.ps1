@@ -2,12 +2,12 @@ $bgn_date = "20120104"
 $bgn_date_ml = "20170201" # machine learning bgn date
 $bgn_date_sig = "20170703" # signal bgn date
 $bgn_date_sim = "20180102" # simulation bgn date
-$stp_date = "20240826"
+$stp_date = "20240902"
 
 # ------------------------
 # --- remove existence ---
 # ------------------------
-Remove-Item -Recurse E:\OneDrive\Data\Projects\CTA_ML_Tushare\*
+Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\*
 
 # ----------------------------
 # --- exectue all projects ---
@@ -41,10 +41,12 @@ python main.py --bgn $bgn_date --stp $stp_date factor --fclass NDOI
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNOI
 python main.py --bgn $bgn_date --stp $stp_date factor --fclass WNDOI
 
+# --- feature selection
+python main.py --bgn $bgn_date_ml --stp $stp_date --processes 12 feature_selection
+
 # --- machine learning
-python main.py --bgn $bgn_date_ml --stp $stp_date --processes 16 feature_selection
 python main.py --bgn $bgn_date_ml --stp $stp_date mclrn --type parse
-python main.py --bgn $bgn_date_ml --stp $stp_date --processes 16 mclrn --type trnprd
+python main.py --bgn $bgn_date_ml --stp $stp_date --processes 12 mclrn --type trnprd
 
 # --- model signals and simulation ---
 python main.py --bgn $bgn_date_sig --stp $stp_date signals --type models

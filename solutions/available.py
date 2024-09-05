@@ -67,7 +67,7 @@ def get_available_universe(
     # --- add section
     update_df["sectorL0"] = update_df["instrument"].map(lambda z: universe[z].sectorL0)
     update_df["sectorL1"] = update_df["instrument"].map(lambda z: universe[z].sectorL1)
-
+    update_df = update_df.sort_values(by=["trade_date", "sectorL1"], ascending=True)
     return update_df[db_struct_avlb.table.vars.names]
 
 

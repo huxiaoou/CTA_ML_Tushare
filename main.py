@@ -375,7 +375,7 @@ if __name__ == "__main__":
                     factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
                     universe=proj_cfg.universe,
                     db_struct_preprocess=db_struct_cfg.preprocess,
-                    db_struct_minute_bar=None,  # to be realized
+                    db_struct_minute_bar=db_struct_cfg.minute_bar,
                 )
         elif fclass == "SMT":
             from solutions.factorAlg import CFactorSMT
@@ -386,7 +386,7 @@ if __name__ == "__main__":
                     factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
                     universe=proj_cfg.universe,
                     db_struct_preprocess=db_struct_cfg.preprocess,
-                    db_struct_minute_bar=None,  # to be realized
+                    db_struct_minute_bar=db_struct_cfg.minute_bar,
                 )
         elif fclass == "RWTC":
             from solutions.factorAlg import CFactorRWTC
@@ -397,7 +397,7 @@ if __name__ == "__main__":
                     factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
                     universe=proj_cfg.universe,
                     db_struct_preprocess=db_struct_cfg.preprocess,
-                    db_struct_minute_bar=None,  # to be realized
+                    db_struct_minute_bar=db_struct_cfg.minute_bar,
                 )
         else:
             raise NotImplementedError(f"fclass = {args.fclass}")

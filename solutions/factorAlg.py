@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 import itertools as ittl
 from husfort.qcalendar import CCalendar
+
 from typedef import (
     CCfgFactorMTM, CCfgFactorSKEW, CCfgFactorRS,
     CCfgFactorBASIS, CCfgFactorTS,
@@ -701,6 +702,8 @@ class CFactorAMP(CFactorRaw):
         )
         adj_major_data["amp"] = adj_major_data["highI"] / adj_major_data["lowI"] - 1
         adj_major_data["spot"] = adj_major_data["closeI"]
+
+        factor_raw_data = {}
         for win, lbd in ittl.product(self.cfg.wins, self.cfg.lbds):
             top_size = int(win * lbd) + 1
             factor_h, factor_l, factor_d = [
@@ -714,9 +717,17 @@ class CFactorAMP(CFactorRaw):
                 rh, rl, rd = self.cal_amp(sub_data=sub_data, x="amp", sort_var="spot", top_size=top_size)
                 r_h_data[trade_date], r_l_data[trade_date], r_d_data[trade_date] = rh, rl, rd
             for iter_data, factor in zip([r_h_data, r_l_data, r_d_data], [factor_h, factor_l, factor_d]):
-                adj_major_data[factor] = pd.Series(iter_data)
-        self.rename_ticker(adj_major_data)
-        factor_data = self.get_factor_data(adj_major_data, bgn_date=bgn_date)
+                factor_raw_data[factor] = pd.Series(iter_data)
+        factor_raw_df = pd.DataFrame(factor_raw_data)
+        input_data = pd.merge(
+            left=adj_major_data,
+            right=factor_raw_df,
+            left_on="trade_date",
+            right_index=True,
+            how="left",
+        )
+        self.rename_ticker(input_data)
+        factor_data = self.get_factor_data(input_data, bgn_date=bgn_date)
         return factor_data
 
 
@@ -726,7 +737,7 @@ class CFactorEXR(CFactorRaw):
         super().__init__(factor_class=cfg.factor_class, factor_names=cfg.factor_names, **kwargs)
 
     @staticmethod
-    def find_extreme_return(tday_minb_data: pd.DataFrame, ret: str, dfts: list[int]) -> dict[str, float]:
+    def find_extreme_return(tday_minb_data: pd.DataFrame, ret: str, dfts: list[int]) -> pd.Series:
         ret_min, ret_max, ret_median = (
             tday_minb_data[ret].min(),
             tday_minb_data[ret].max(),
@@ -741,7 +752,7 @@ class CFactorEXR(CFactorRaw):
             idx_dxr = idx_exr - d
             dxr = -tday_minb_data[ret].iloc[idx_dxr] if idx_dxr >= 0 else exr
             res[f"DXR{d:02d}_RAW"] = dxr
-        return res
+        return pd.Series(res)
 
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
@@ -754,15 +765,14 @@ class CFactorEXR(CFactorRaw):
         adj_minb_data = self.load_minute_bar(instru, bgn_date=win_start_date, stp_date=stp_date)
         adj_minb_data["freq_ret"] = adj_minb_data["close"] / adj_minb_data["pre_close"] - 1
         adj_minb_data["freq_ret"] = adj_minb_data["freq_ret"].fillna(0)
-        res_srs = adj_minb_data.groupby(by="trade_date").apply(
+        exr_dxr_df = adj_minb_data.groupby(by="trade_date").apply(
             self.find_extreme_return, ret="freq_ret", dfts=self.cfg.dfts  # type:ignore
         )
-        exr_dxr_df = pd.DataFrame.from_dict(res_srs.to_dict(), orient="index")
         factor_win_dfs: list[pd.DataFrame] = []
         for win in self.cfg.wins:
             rename_mapper = {
-                **{"EXR": f"EXR{win:03d}_RAW"},
-                **{f"DXR{d:02d}": f"DXR{win:03d}D{d:02d}_RAW" for d in self.cfg.dfts},
+                **{"EXR_RAW": f"EXR{win:03d}_RAW"},
+                **{f"DXR{d:02d}_RAW": f"DXR{win:03d}D{d:02d}_RAW" for d in self.cfg.dfts},
             }
             factor_win_data = exr_dxr_df.rolling(window=win).mean()
             factor_win_data = factor_win_data.rename(mapper=rename_mapper, axis=1)
@@ -842,10 +852,11 @@ class CFactorSMT(CFactorRaw):
             iter_tail_dates = calendar.get_iter_list(bgn_date, stp_date)
             base_bgn_date = calendar.get_next_date(iter_tail_dates[0], -win + 1)
             base_end_date = calendar.get_next_date(iter_tail_dates[-1], -win + 1)
-            iter_head_dates = calendar.get_iter_list(base_bgn_date, base_end_date)
+            base_stp_date = calendar.get_next_date(base_end_date, shift=1)
+            iter_head_dates = calendar.get_iter_list(base_bgn_date, base_stp_date)
             p_data, r_data = {}, {}
             for iter_bgn_date, iter_end_date in zip(iter_head_dates, iter_tail_dates):
-                sub_data = adj_minb_data.truncate(before=int(iter_bgn_date), after=int(iter_end_date))
+                sub_data = adj_minb_data.query(f"(trade_date >= '{iter_bgn_date}') & (trade_date <= '{iter_end_date}')")
                 sorted_sub_data = sub_data.sort_values(by="smart_idx", ascending=False)
                 p_data[iter_end_date], r_data[iter_end_date] = {}, {}
                 for lbd in self.cfg.lbds:
@@ -876,7 +887,7 @@ class CFactorRWTC(CFactorRaw):
         super().__init__(factor_class=cfg.factor_class, factor_names=cfg.factor_names, **kwargs)
 
     @staticmethod
-    def cal_range_weighted_time_center(tday_minb_data: pd.DataFrame, ret: str) -> dict[str, float]:
+    def cal_range_weighted_time_center(tday_minb_data: pd.DataFrame, ret: str) -> pd.Series:
         index_reset_df = tday_minb_data.reset_index()
         pos_idx = index_reset_df[ret] > 0
         neg_idx = index_reset_df[ret] < 0
@@ -888,7 +899,7 @@ class CFactorRWTC(CFactorRaw):
         rwtc_d = neg_grp.index @ neg_wgt / len(tday_minb_data)
         rwtc_t = rwtc_u - rwtc_d
         rwtc_v = np.abs(rwtc_t)
-        return {"RWTCU": rwtc_u, "RWTCD": rwtc_d, "RWTCT": rwtc_t, "RWTCV": rwtc_v}
+        return pd.Series({"RWTCU": rwtc_u, "RWTCD": rwtc_d, "RWTCT": rwtc_t, "RWTCV": rwtc_v})
 
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
@@ -901,10 +912,9 @@ class CFactorRWTC(CFactorRaw):
         adj_minb_data = self.load_minute_bar(instru, bgn_date=win_start_date, stp_date=stp_date)
         adj_minb_data["freq_ret"] = adj_minb_data["close"] / adj_minb_data["pre_close"] - 1
         adj_minb_data["freq_ret"] = adj_minb_data["freq_ret"].fillna(0)
-        res_srs = adj_minb_data.groupby(by="trade_date").apply(
+        rwtc_df = adj_minb_data.groupby(by="trade_date").apply(
             self.cal_range_weighted_time_center, ret="freq_ret"  # type:ignore
         )
-        rwtc_df = pd.DataFrame.from_dict(res_srs.to_dict(), orient="index")
         factor_win_dfs: list[pd.DataFrame] = []
         for win in self.cfg.wins:
             rename_mapper = {

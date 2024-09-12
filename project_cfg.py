@@ -48,6 +48,7 @@ proj_cfg = CCfgProj(
     market_index_path=_config["path"]["market_index_path"],
     by_instru_pos_dir=_config["path"]["by_instru_pos_dir"],
     by_instru_pre_dir=_config["path"]["by_instru_pre_dir"],
+    by_instru_min_dir=_config["path"]["by_instru_min_dir"],
 
     # --- project
     project_root_dir=_config["path"]["project_root_dir"],
@@ -155,6 +156,11 @@ db_struct_cfg = CCfgDbStruct(
         db_name=_db_struct["preprocess"]["db_name"],
         table=CSqlTable(cfg=_db_struct["preprocess"]["table"]),
     ),
+    minute_bar=CDbStruct(
+        db_save_dir=proj_cfg.by_instru_min_dir,
+        db_name=_db_struct["fMinuteBar"]["db_name"],
+        table=CSqlTable(cfg=_db_struct["fMinuteBar"]["table"]),
+    ),
 
     # --- project database
     available=CDbStruct(
@@ -191,10 +197,10 @@ cfg_factors = CCfgFactors(
     NDOI=CCfgFactorNDOI(**proj_cfg.factors["NDOI"]),
     WNOI=None,  # CCfgFactorWNOI(**proj_cfg.factors["WNOI"]),
     WNDOI=None,  # CCfgFactorWNDOI(**proj_cfg.factors["WNDOI"]),
-    AMP=None,  # CCfgFactorAMP(**proj_cfg.factors["AMP"]),
-    EXR=None,  # CCfgFactorEXR(**proj_cfg.factors["EXR"]),
-    SMT=None,  # CCfgFactorSMT(**proj_cfg.factors["SMT"]),
-    RWTC=None,  # CCfgFactorRWTC(**proj_cfg.factors["RWTC"]),
+    AMP=CCfgFactorAMP(**proj_cfg.factors["AMP"]),
+    EXR=CCfgFactorEXR(**proj_cfg.factors["EXR"]),
+    SMT=CCfgFactorSMT(**proj_cfg.factors["SMT"]),
+    RWTC=CCfgFactorRWTC(**proj_cfg.factors["RWTC"]),
 )
 
 factors_pool_raw: TFactorsPool = []

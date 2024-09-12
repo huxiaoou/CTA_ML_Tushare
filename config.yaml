@@ -8,6 +8,7 @@ path:
   market_index_path: E:\OneDrive\Data\Market\index.xlsx
   by_instru_pos_dir: E:\OneDrive\Data\tushare\by_instrument\position
   by_instru_pre_dir: E:\OneDrive\Data\tushare\by_instrument\preprocess
+  by_instru_min_dir: E:\OneDrive\Data\tushare\by_instrument\minute_bar
 
   # --- project
   project_root_dir: E:\Data\Projects\CTA_ML_Tushare
@@ -304,15 +305,12 @@ factors:
     wins: [ 20, 60 ]
     lbds: [ 0.3, 0.6, 0.9 ]
   EXR:
-    freq: "m01e"
     wins: [ 20, 40, 60 ]
     dfts: [ 3 ]
   SMT:
-    freq: "m01e"
     wins: [ 5, 10, 20 ]
     lbds: [ 0.2, 0.4, 0.6 ]
   RWTC:
-    freq: "m01e"
     wins: [ 5, 10, 20 ]
 
 # ------- models -------

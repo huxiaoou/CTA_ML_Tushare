@@ -88,11 +88,17 @@ class CFactorRaw(CFactorGeneric):
             raise ValueError("Argument 'db_struct_preprocess' must be provided")
 
     def load_minute_bar(self, instru: str, bgn_date: str, stp_date: str, values: list[str] = None) -> pd.DataFrame:
-        # if self.db_struct_minute_bar is not None:
-        #     pass
-        # else:
-        #     raise ValueError("Argument 'db_struct_minute_bar' must be provided")
-        raise NotImplementedError
+        if self.db_struct_minute_bar is not None:
+            db_struct_instru = self.db_struct_minute_bar.copy_to_another(another_db_name=f"{instru}.db")
+            sqldb = CMgrSqlDb(
+                db_save_dir=db_struct_instru.db_save_dir,
+                db_name=db_struct_instru.db_name,
+                table=db_struct_instru.table,
+                mode="r",
+            )
+            return sqldb.read_by_range(bgn_date, stp_date, value_columns=values)
+        else:
+            raise ValueError("Argument 'db_struct_minute_bar' must be provided")
 
     def load_pos(self, instru: str, bgn_date: str, stp_date: str, values: list[str] = None) -> pd.DataFrame:
         if self.db_struct_pos is not None:

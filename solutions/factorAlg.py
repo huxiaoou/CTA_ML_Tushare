@@ -695,16 +695,19 @@ class CFactorAMP(CFactorRaw):
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
         win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
-        adj_data = self.load_minute_bar(instru, bgn_date=win_start_date, stp_date=stp_date)
-        adj_data["amp"] = adj_data["high"] / adj_data["low"] - 1
-        adj_data["spot"] = adj_data["closeM"]
+        adj_data = self.load_preprocess(
+            instru, bgn_date=win_start_date, stp_date=stp_date,
+            values=["trade_date", "ticker_major", "highI", "lowI", "closeI"],
+        )
+        adj_data["amp"] = adj_data["highI"] / adj_data["lowI"] - 1
+        adj_data["spot"] = adj_data["closeI"]
         for win, lbd in ittl.product(self.cfg.wins, self.cfg.lbds):
             top_size = int(win * lbd) + 1
             factor_h, factor_l, factor_d = [
                 f"{self.factor_class}{win:03d}T{int(lbd * 10):02d}{_}_RAW" for _ in ["H", "L", "D"]
             ]
             r_h_data, r_l_data, r_d_data = {}, {}, {}
-            for i, trade_date in enumerate(adj_data.index):
+            for i, trade_date in enumerate(adj_data["trade_date"]):
                 if (trade_date < bgn_date) or (trade_date >= stp_date):
                     continue
                 sub_data = adj_data.iloc[i - win + 1: i + 1]
@@ -712,6 +715,7 @@ class CFactorAMP(CFactorRaw):
                 r_h_data[trade_date], r_l_data[trade_date], r_d_data[trade_date] = rh, rl, rd
             for iter_data, factor in zip([r_h_data, r_l_data, r_d_data], [factor_h, factor_l, factor_d]):
                 adj_data[factor] = pd.Series(iter_data)
+        self.rename_ticker(adj_data)
         factor_data = self.get_factor_data(adj_data, bgn_date=bgn_date)
         return factor_data
 

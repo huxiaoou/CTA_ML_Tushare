@@ -53,6 +53,7 @@ class CCfgProj:
     market_index_path: str
     by_instru_pos_dir: str
     by_instru_pre_dir: str
+    by_instru_min_dir: str
 
     # --- project
     project_root_dir: str
@@ -98,6 +99,7 @@ class CCfgDbStruct:
     basis: CDbStruct
     stock: CDbStruct
     preprocess: CDbStruct
+    minute_bar: CDbStruct
 
     # --- project database
     available: CDbStruct
@@ -481,7 +483,6 @@ class CCfgFactorAMP(CCfgFactor):
 
 @dataclass(frozen=True)
 class CCfgFactorEXR(CCfgFactor):
-    freq: str
     wins: list[int]
     dfts: list[int]
 
@@ -499,7 +500,6 @@ class CCfgFactorEXR(CCfgFactor):
 
 @dataclass(frozen=True)
 class CCfgFactorSMT(CCfgFactor):
-    freq: str
     wins: list[int]
     lbds: list[float]
 
@@ -518,7 +518,6 @@ class CCfgFactorSMT(CCfgFactor):
 
 @dataclass(frozen=True)
 class CCfgFactorRWTC(CCfgFactor):
-    freq: str
     wins: list[int]
 
     @property

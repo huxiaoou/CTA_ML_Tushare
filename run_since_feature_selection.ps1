@@ -9,11 +9,12 @@ Write-Host "Removing data ..."
 # ------------------------
 # --- remove existence ---
 # ------------------------
-Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\feature_selection
-Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\mclrn
-Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\signals
-Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\simulations
-Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\evaluations
+Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\feature_selection\*
+Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\mclrn\*
+Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\signals\*
+Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\simulations\*
+Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\evaluations\*
+
 
 # ----------------------------
 # --- exectue all projects ---

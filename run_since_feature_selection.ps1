@@ -4,11 +4,12 @@ $bgn_date_sig = "20170703" # signal bgn date
 $bgn_date_sim = "20180102" # simulation bgn date
 $stp_date = "20240902"
 
+# -----------------------
+# --- remove old data ---
+# -----------------------
+
 Write-Host "Removing data ..."
 
-# ------------------------
-# --- remove existence ---
-# ------------------------
 Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\feature_selection\*
 Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\mclrn\*
 Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\signals\*

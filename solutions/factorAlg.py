@@ -583,6 +583,42 @@ class __CFactorMbrPos(CFactorRaw):
         self.using_diff = cfg.factor_class in ["NDOI", "WNDOI"]
         super().__init__(factor_class=cfg.factor_class, factor_names=cfg.factor_names, **kwargs)
 
+    # def cal_core(self, pos_data: pd.DataFrame, top: int, instru_oi_data: pd.DataFrame) -> pd.DataFrame:
+    #     def __robust_rate(z: pd.Series) -> float:
+    #         return z.iloc[0] / z.iloc[1] * 100 if z.iloc[1] > 0 else np.nan
+    #
+    #     cntrct_pos_data = pos_data.query("code_type == 0")
+    #
+    #     lng_pos_data = cntrct_pos_data[["trade_date", "ts_code", "broker", "long_hld", "long_chg"]].dropna(
+    #         subset=["long_hld", "long_chg"], how="any")
+    #     lng_rnk_data = lng_pos_data[["trade_date", "ts_code", "long_hld"]].groupby(
+    #         by=["trade_date", "ts_code"]).rank(ascending=False)
+    #     lng_data = pd.merge(
+    #         left=lng_pos_data, right=lng_rnk_data,
+    #         left_index=True, right_index=True,
+    #         how="left", suffixes=("", "_rnk")
+    #     ).sort_values(by=["trade_date", "ts_code", "long_hld_rnk"], ascending=True)
+    #     lng_data_slc = lng_data.query(f"long_hld_rnk <= {top}")
+    #
+    #     oi_df = pd.pivot_table(
+    #         data=lng_data_slc,
+    #         index="trade_date",
+    #         values="long_chg" if self.using_diff else "long_hld",
+    #         aggfunc=auto_weight_sum if self.call_weight_sum else "sum",
+    #     )
+    #
+    #     noi_df = pd.merge(
+    #         left=instru_oi_data.set_index("trade_date"), right=oi_df,
+    #         left_index=True, right_index=True, how="left",
+    #     )
+    #     if self.using_diff:
+    #         noi_df["noi_sum"] = noi_df["long_chg"]  # -oi_df["short_chg"]
+    #     else:
+    #         noi_df["noi_sum"] = noi_df["long_hld"]  # -oi_df["short_hld"]
+    #
+    #     noi_df["net"] = noi_df[["noi_sum", "oi_instru"]].apply(__robust_rate, axis=1)
+    #     return noi_df[["net"]]
+
     def cal_core(self, pos_data: pd.DataFrame, top: int, instru_oi_data: pd.DataFrame) -> pd.DataFrame:
         def __robust_rate(z: pd.Series) -> float:
             return z.iloc[0] / z.iloc[1] * 100 if z.iloc[1] > 0 else np.nan
@@ -591,8 +627,14 @@ class __CFactorMbrPos(CFactorRaw):
 
         lng_pos_data = cntrct_pos_data[["trade_date", "ts_code", "broker", "long_hld", "long_chg"]].dropna(
             subset=["long_hld", "long_chg"], how="any")
+        srt_pos_data = cntrct_pos_data[["trade_date", "ts_code", "broker", "short_hld", "short_chg"]].dropna(
+            subset=["short_hld", "short_chg"], how="any")
+
         lng_rnk_data = lng_pos_data[["trade_date", "ts_code", "long_hld"]].groupby(
             by=["trade_date", "ts_code"]).rank(ascending=False)
+        srt_rnk_data = srt_pos_data[["trade_date", "ts_code", "short_hld"]].groupby(
+            by=["trade_date", "ts_code"]).rank(ascending=False)
+
         lng_data = pd.merge(
             left=lng_pos_data, right=lng_rnk_data,
             left_index=True, right_index=True,
@@ -600,21 +642,35 @@ class __CFactorMbrPos(CFactorRaw):
         ).sort_values(by=["trade_date", "ts_code", "long_hld_rnk"], ascending=True)
         lng_data_slc = lng_data.query(f"long_hld_rnk <= {top}")
 
-        oi_df = pd.pivot_table(
+        srt_data = pd.merge(
+            left=srt_pos_data, right=srt_rnk_data,
+            left_index=True, right_index=True,
+            how="left", suffixes=("", "_rnk")
+        ).sort_values(by=["trade_date", "ts_code", "short_hld_rnk"], ascending=True)
+        srt_data_slc = srt_data.query(f"short_hld_rnk <= {top}")
+
+        lng_oi_df = pd.pivot_table(
             data=lng_data_slc,
             index="trade_date",
             values="long_chg" if self.using_diff else "long_hld",
             aggfunc=auto_weight_sum if self.call_weight_sum else "sum",
         )
+        srt_oi_df = pd.pivot_table(
+            data=srt_data_slc,
+            index="trade_date",
+            values="short_chg" if self.using_diff else "short_hld",
+            aggfunc=auto_weight_sum if self.call_weight_sum else "sum",
+        )
 
-        noi_df = pd.merge(
-            left=instru_oi_data.set_index("trade_date"), right=oi_df,
-            left_index=True, right_index=True, how="left",
+        noi_df = instru_oi_data.set_index("trade_date").merge(
+            right=lng_oi_df, left_index=True, right_index=True, how="left",
+        ).merge(
+            right=srt_oi_df, left_index=True, right_index=True, how="left",
         )
         if self.using_diff:
-            noi_df["noi_sum"] = noi_df["long_chg"]  # -oi_df["short_chg"]
+            noi_df["noi_sum"] = noi_df["long_chg"] - noi_df["short_chg"]
         else:
-            noi_df["noi_sum"] = noi_df["long_hld"]  # -oi_df["short_hld"]
+            noi_df["noi_sum"] = noi_df["long_hld"] - noi_df["short_hld"]
 
         noi_df["net"] = noi_df[["noi_sum", "oi_instru"]].apply(__robust_rate, axis=1)
         return noi_df[["net"]]

@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+import talib as ta
 import itertools as ittl
 from husfort.qcalendar import CCalendar
 
@@ -12,6 +13,7 @@ from typedef import (
     CCfgFactorCTR, CCfgFactorCVR, CCfgFactorCSR,
     CCfgFactorNOI, CCfgFactorNDOI, CCfgFactorWNOI, CCfgFactorWNDOI,
     CCfgFactorAMP, CCfgFactorEXR, CCfgFactorSMT, CCfgFactorRWTC,
+    CCfgFactorTA,
 )
 from solutions.factor import CFactorRaw
 
@@ -957,4 +959,37 @@ class CFactorRWTC(CFactorRaw):
         )
         self.rename_ticker(input_data)
         factor_data = self.get_factor_data(input_data, bgn_date=bgn_date)
+        return factor_data
+
+
+class CFactorTA(CFactorRaw):
+    def __init__(self, cfg: CCfgFactorTA, **kwargs):
+        self.cfg = cfg
+        super().__init__(factor_class=cfg.factor_class, factor_names=cfg.factor_names, **kwargs)
+
+    def cal_factor_by_instru(self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar) -> pd.DataFrame:
+        win_start_date = "20120104"
+        major_data = self.load_preprocess(
+            instru, bgn_date=win_start_date, stp_date=stp_date,
+            values=[
+                "trade_date", "ticker_major",
+                "openI", "highI", "lowI", "closeI",
+                "vol_major", "amount_major", "oi_major"
+            ],
+        )
+
+        close = major_data["closeI"]
+        high = major_data["highI"]
+        low = major_data["lowI"]
+
+        fast, slow, diff = self.cfg.macd
+        macd, macdsignal, macdhist = ta.MACD(close, fastperiod=fast, slowperiod=slow, signalperiod=diff)
+        major_data[self.cfg.name_macd] = macdhist
+
+        acceleration, maximum = self.cfg.sar
+        real = ta.SAR(high, low, acceleration=acceleration, maximum=maximum)
+        major_data[self.cfg.name_sar] = close / real - 1
+
+        self.rename_ticker(major_data)
+        factor_data = self.get_factor_data(major_data, bgn_date)
         return factor_data

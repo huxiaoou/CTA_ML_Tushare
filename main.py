@@ -39,7 +39,8 @@ def parse_args():
                  "S0BETA", "S1BETA", "CBETA", "IBETA", "PBETA",
                  "CTP", "CTR", "CVP", "CVR", "CSP", "CSR",
                  "NOI", "NDOI", "WNOI", "WNDOI",
-                 "AMP", "EXR", "SMT", "RWTC"),
+                 "AMP", "EXR", "SMT", "RWTC",
+                 "TA",),
     )
 
     # switch: test return
@@ -393,6 +394,17 @@ if __name__ == "__main__":
 
             if (cfg := cfg_factors.RWTC) is not None:
                 fac = CFactorRWTC(
+                    cfg=cfg,
+                    factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
+                    universe=proj_cfg.universe,
+                    db_struct_preprocess=db_struct_cfg.preprocess,
+                    db_struct_minute_bar=db_struct_cfg.minute_bar,
+                )
+        elif fclass == "TA":
+            from solutions.factorAlg import CFactorTA
+
+            if (cfg := cfg_factors.TA) is not None:
+                fac = CFactorTA(
                     cfg=cfg,
                     factors_by_instru_dir=proj_cfg.factors_by_instru_dir,
                     universe=proj_cfg.universe,

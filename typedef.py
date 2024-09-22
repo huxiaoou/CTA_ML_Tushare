@@ -534,6 +534,31 @@ class CCfgFactorRWTC(CCfgFactor):
 
 
 @dataclass(frozen=True)
+class CCfgFactorTA(CCfgFactor):
+    macd: tuple[int, int, int]
+    sar: tuple[float, float]
+
+    @property
+    def factor_class(self) -> TFactorClass:
+        return "TA"
+
+    @property
+    def name_macd(self) -> TFactorName:
+        fast, slow, diff = self.macd
+        return f"{self.factor_class}MACDF{fast}S{slow}D{diff}_RAW"
+
+    @property
+    def name_sar(self) -> TFactorName:
+        acceleration, maximum = self.sar
+        return f"{self.factor_class}SARA{int(acceleration * 100):02d}M{int(maximum * 100):02d}_RAW"
+
+    @property
+    def factor_names(self) -> TFactorNames:
+        names_ta = [self.name_macd, self.name_sar]
+        return names_ta
+
+
+@dataclass(frozen=True)
 class CCfgFactors:
     MTM: CCfgFactorMTM | None
     SKEW: CCfgFactorSKEW | None
@@ -559,6 +584,7 @@ class CCfgFactors:
     EXR: CCfgFactorEXR | None
     SMT: CCfgFactorSMT | None
     RWTC: CCfgFactorRWTC | None
+    TA: CCfgFactorTA | None
 
     def values(self) -> list[CCfgFactor]:
         res = []

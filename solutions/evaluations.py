@@ -352,6 +352,15 @@ def main_eval_portfolios(
     pd.set_option("display.float_format", lambda z: f"{z:.3f}")
     print("Portfolios performance")
     print(evl_data)
+
+    desc_data = evl_data.set_index("portfolioId")
+    p00_sharpe, p00_calmar, p00_sum = desc_data.at["P00", "sharpe"], desc_data.at["P00", "calmar"], desc_data.at[
+        "P00", "sharpe_plus_calmar"]
+    p01_sharpe, p01_calmar, p01_sum = desc_data.at["P01", "sharpe"], desc_data.at["P01", "calmar"], desc_data.at[
+        "P01", "sharpe_plus_calmar"]
+    summary = f"P00=({p00_sharpe:.3f},{p00_calmar:.3f},{p00_sum:.3f}), P01=({p01_sharpe:.3f},{p01_calmar:.3f},{p01_sum:.3f})"
+    print(summary)
+
     return 0
 
 

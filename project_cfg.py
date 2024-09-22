@@ -28,6 +28,7 @@ from typedef import (
     CCfgFactorEXR,
     CCfgFactorSMT,
     CCfgFactorRWTC,
+    CCfgFactorTA,
 )
 from typedef import TFactorsPool
 from husfort.qsqlite import CDbStruct, CSqlTable
@@ -201,6 +202,7 @@ cfg_factors = CCfgFactors(
     EXR=CCfgFactorEXR(**proj_cfg.factors["EXR"]),
     SMT=CCfgFactorSMT(**proj_cfg.factors["SMT"]),
     RWTC=CCfgFactorRWTC(**proj_cfg.factors["RWTC"]),
+    TA=CCfgFactorTA(**proj_cfg.factors["TA"]),
 )
 
 factors_pool_raw: TFactorsPool = []

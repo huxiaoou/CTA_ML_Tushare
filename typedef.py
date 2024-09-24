@@ -536,7 +536,18 @@ class CCfgFactorRWTC(CCfgFactor):
 @dataclass(frozen=True)
 class CCfgFactorTA(CCfgFactor):
     macd: tuple[int, int, int]
+    bbands: tuple[int, int, int]
     sar: tuple[float, float]
+    adx: int
+    bop: None
+    cci: int
+    cmo: int
+    rsi: int
+    mfi: int
+    willr: int
+    adosc: tuple[int, int]
+    obv: None
+    natr: int
 
     @property
     def factor_class(self) -> TFactorClass:
@@ -548,13 +559,70 @@ class CCfgFactorTA(CCfgFactor):
         return f"{self.factor_class}MACDF{fast}S{slow}D{diff}_RAW"
 
     @property
+    def name_bbands(self) -> TFactorName:
+        timeperiod, up, dn = self.bbands
+        return f"{self.factor_class}BBANDT{timeperiod}U{up}D{dn}_RAW"
+
+    @property
     def name_sar(self) -> TFactorName:
         acceleration, maximum = self.sar
         return f"{self.factor_class}SARA{int(acceleration * 100):02d}M{int(maximum * 100):02d}_RAW"
 
     @property
+    def name_adx(self) -> TFactorName:
+        timeperiod = self.adx
+        return f"{self.factor_class}ADXT{timeperiod}_RAW"
+
+    @property
+    def name_bop(self) -> TFactorName:
+        return f"{self.factor_class}BOP_RAW"
+
+    @property
+    def name_cci(self) -> TFactorName:
+        timeperiod = self.cci
+        return f"{self.factor_class}CCIT{timeperiod}_RAW"
+
+    @property
+    def name_cmo(self) -> TFactorName:
+        timeperiod = self.cmo
+        return f"{self.factor_class}CMOT{timeperiod}_RAW"
+
+    @property
+    def name_rsi(self) -> TFactorName:
+        timeperiod = self.rsi
+        return f"{self.factor_class}RSIT{timeperiod}_RAW"
+
+    @property
+    def name_mfi(self) -> TFactorName:
+        timeperiod = self.mfi
+        return f"{self.factor_class}MFIT{timeperiod}_RAW"
+
+    @property
+    def name_willr(self) -> TFactorName:
+        timeperiod = self.willr
+        return f"{self.factor_class}WILLRT{timeperiod}_RAW"
+
+    @property
+    def name_adosc(self) -> TFactorName:
+        fast, slow = self.adosc
+        return f"{self.factor_class}ADOSCF{fast}S{slow}_RAW"
+
+    @property
+    def name_obv(self) -> TFactorName:
+        return f"{self.factor_class}OBV_RAW"
+
+    @property
+    def name_natr(self) -> TFactorName:
+        timeperiod = self.natr
+        return f"{self.factor_class}NATRT{timeperiod}_RAW"
+
+    @property
     def factor_names(self) -> TFactorNames:
-        names_ta = [self.name_macd, self.name_sar]
+        names_ta = [
+            self.name_macd, self.name_bbands, self.name_sar, self.name_adx,
+            self.name_bop, self.name_cci, self.name_cmo, self.name_rsi, self.name_mfi,
+            self.name_willr, self.name_adosc, self.name_obv, self.name_natr,
+        ]
         return names_ta
 
 

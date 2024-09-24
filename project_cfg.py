@@ -30,7 +30,7 @@ from typedef import (
     CCfgFactorRWTC,
     CCfgFactorTA,
 )
-from typedef import TFactorsPool
+from typedef import TFactorsPool, TFactorNames
 from husfort.qsqlite import CDbStruct, CSqlTable
 
 # ---------- project configuration ----------
@@ -207,9 +207,13 @@ cfg_factors = CCfgFactors(
 
 factors_pool_raw: TFactorsPool = []
 factors_pool_neu: TFactorsPool = []
+factors_names_raw: TFactorNames = []
+factors_names_neu: TFactorNames = []
 for cfg_factor in cfg_factors.values():
-    factors_pool_raw.extend(cfg_factor.get_combs_raw(proj_cfg.factors_by_instru_dir))
-    factors_pool_neu.extend(cfg_factor.get_combs_neu(proj_cfg.neutral_by_instru_dir))
+    factors_pool_raw.extend(raw_data := cfg_factor.get_combs_raw(proj_cfg.factors_by_instru_dir))
+    factors_pool_neu.extend(neu_data := cfg_factor.get_combs_neu(proj_cfg.neutral_by_instru_dir))
+    factors_names_raw.extend(raw_data[0][1])
+    factors_names_neu.extend(neu_data[0][1])
 
 if __name__ == "__main__":
     print(f"Size of universe = {len(universe)}")
@@ -217,7 +221,11 @@ if __name__ == "__main__":
     print(db_struct_cfg)
     print("project_configuration:")
     print(proj_cfg)
-    print("factors pool raw")
+    print(f"factors pool raw: {len(factors_pool_raw)}")
     print(factors_pool_raw)
-    print("factors pool neu")
+    print(f"factors pool neu: {len(factors_pool_neu)}")
     print(factors_pool_neu)
+    print(f"factor names raw: {len(factors_names_raw)}")
+    print(factors_names_raw)
+    print(f"factor names raw: {len(factors_names_neu)}")
+    print(factors_names_neu)

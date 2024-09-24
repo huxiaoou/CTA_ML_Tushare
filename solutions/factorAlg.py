@@ -967,6 +967,67 @@ class CFactorTA(CFactorRaw):
         self.cfg = cfg
         super().__init__(factor_class=cfg.factor_class, factor_names=cfg.factor_names, **kwargs)
 
+    def __cal_macd(self, close: pd.Series) -> pd.Series:
+        fast, slow, diff = self.cfg.macd
+        macd, macdsignal, macdhist = ta.MACD(close, fastperiod=fast, slowperiod=slow, signalperiod=diff)
+        return macdhist
+
+    def __cal_bbands(self, close: pd.Series) -> list[float]:
+        timeperiod, up, dn = self.cfg.bbands
+        upper, middle, lower = ta.BBANDS(close, timeperiod=timeperiod, nbdevup=up, nbdevdn=dn, matype=0)
+        res = []
+        for u, m, l, c in zip(upper, middle, lower, close):
+            if c >= m:
+                res.append((u / c - 1) * 100)
+            else:
+                res.append((l / c - 1) * 100)
+        return res
+
+    def __cal_sar(self, high: pd.Series, low: pd.Series, close: pd.Series) -> pd.Series:
+        acceleration, maximum = self.cfg.sar
+        real = ta.SAR(high, low, acceleration=acceleration, maximum=maximum)
+        return (close / real - 1) * 100
+
+    def __cal_adx(self, high: pd.Series, low: pd.Series, close: pd.Series) -> pd.Series:
+        timeperiod = self.cfg.adx
+        return ta.ADX(high, low, close, timeperiod=timeperiod)
+
+    def __cal_bop(self, opn: pd.Series, high: pd.Series, low: pd.Series, close: pd.Series) -> pd.Series:
+        _ = self.cfg.bop
+        return ta.BOP(opn, high, low, close)
+
+    def __cal_cci(self, high: pd.Series, low: pd.Series, close: pd.Series) -> pd.Series:
+        timeperiod = self.cfg.cci
+        return ta.CCI(high, low, close, timeperiod=timeperiod)
+
+    def __cal_cmo(self, close: pd.Series) -> pd.Series:
+        timeperiod = self.cfg.cmo
+        return ta.CMO(close, timeperiod=timeperiod)
+
+    def __cal_rsi(self, close: pd.Series) -> pd.Series:
+        timeperiod = self.cfg.rsi
+        return ta.RSI(close, timeperiod=timeperiod)
+
+    def __cal_mfi(self, high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series) -> pd.Series:
+        timeperiod = self.cfg.mfi
+        return ta.MFI(high, low, close, volume, timeperiod=timeperiod)
+
+    def __cal_willr(self, high: pd.Series, low: pd.Series, close: pd.Series) -> pd.Series:
+        timeperiod = self.cfg.willr
+        return ta.WILLR(high, low, close, timeperiod=timeperiod)
+
+    def __cal_adosc(self, high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series) -> pd.Series:
+        fast, slow = self.cfg.adosc
+        return ta.ADOSC(high, low, close, volume, fastperiod=fast, slowperiod=slow)
+
+    def __cal_obv(self, close: pd.Series, volume: pd.Series) -> pd.Series:
+        _ = self.cfg.obv
+        return ta.OBV(close, volume)
+
+    def __cal_natr(self, high: pd.Series, low: pd.Series, close: pd.Series) -> pd.Series:
+        timeperiod = self.cfg.natr
+        return ta.NATR(high, low, close, timeperiod=timeperiod)
+
     def cal_factor_by_instru(self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar) -> pd.DataFrame:
         win_start_date = "20120104"
         major_data = self.load_preprocess(
@@ -977,18 +1038,23 @@ class CFactorTA(CFactorRaw):
                 "vol_major", "amount_major", "oi_major"
             ],
         )
+        opn, close = major_data["openI"], major_data["closeI"]
+        high, low = major_data["highI"], major_data["lowI"]
+        volume = major_data["vol_major"]
 
-        close = major_data["closeI"]
-        high = major_data["highI"]
-        low = major_data["lowI"]
-
-        fast, slow, diff = self.cfg.macd
-        macd, macdsignal, macdhist = ta.MACD(close, fastperiod=fast, slowperiod=slow, signalperiod=diff)
-        major_data[self.cfg.name_macd] = macdhist
-
-        acceleration, maximum = self.cfg.sar
-        real = ta.SAR(high, low, acceleration=acceleration, maximum=maximum)
-        major_data[self.cfg.name_sar] = close / real - 1
+        major_data[self.cfg.name_macd] = self.__cal_macd(close=close)
+        major_data[self.cfg.name_bbands] = self.__cal_bbands(close=close)
+        major_data[self.cfg.name_sar] = self.__cal_sar(high=high, low=low, close=close)
+        major_data[self.cfg.name_adx] = self.__cal_adx(high=high, low=low, close=close)
+        major_data[self.cfg.name_bop] = self.__cal_bop(opn=opn, high=high, low=low, close=close)
+        major_data[self.cfg.name_cci] = self.__cal_cci(high=high, low=low, close=close)
+        major_data[self.cfg.name_cmo] = self.__cal_cmo(close=close)
+        major_data[self.cfg.name_rsi] = self.__cal_rsi(close=close)
+        major_data[self.cfg.name_mfi] = self.__cal_mfi(high=high, low=low, close=close, volume=volume)
+        major_data[self.cfg.name_willr] = self.__cal_willr(high=high, low=low, close=close)
+        major_data[self.cfg.name_adosc] = self.__cal_adosc(high=high, low=low, close=close, volume=volume)
+        major_data[self.cfg.name_obv] = self.__cal_obv(close=close, volume=volume)
+        major_data[self.cfg.name_natr] = self.__cal_natr(high=high, low=low, close=close)
 
         self.rename_ticker(major_data)
         factor_data = self.get_factor_data(major_data, bgn_date)

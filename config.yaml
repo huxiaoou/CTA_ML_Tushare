@@ -201,7 +201,7 @@ available:
 trn:
   wins: [ 60, 120, 240, 480, 720 ]
 feature_selection:
-  mut_info_threshold: 0.05
+  mut_info_threshold: 0.10
   min_feats: 5
 
 # ------- database structure -------
@@ -324,7 +324,7 @@ factors:
     mfi: 10
     willr: 10
     adosc: [3, 10]
-    obv: None
+    obv: 10
     natr: 10
 
 # ------- models -------
@@ -346,19 +346,19 @@ portfolios:
   P00:
     target: ClsRtn001L1RAW
     weights:
-      M0287: 3 # AGR Sharpe = 0.547, Calmar = 0.381, Sharpe + Calmar = 0.929, W480, LGBM, ClsRtn001L1RAW
-      M0252: 1 # AUG Sharpe = 0.697, Calmar = 0.471, Sharpe + Calmar = 1.168, W480, LGBM, ClsRtn001L1RAW
-      M0290: 5 # BLK Sharpe = 0.876, Calmar = 0.503, Sharpe + Calmar = 1.380, W720, Ridge, ClsRtn001L1RAW
-      M0232: 5 # CHM Sharpe = 0.941, Calmar = 0.800, Sharpe + Calmar = 1.741, W480, Ridge, ClsRtn001L1RAW
-      M0253: 3 # MTL Sharpe = 0.672, Calmar = 0.407, Sharpe + Calmar = 1.079, W480, LGBM, ClsRtn001L1RAW
-      M0123: 3 # OIL Sharpe = 0.262, Calmar = 0.152, Sharpe + Calmar = 0.415, W120, LGBM, ClsRtn001L1RAW
+      M0179: 3 # AGR Sharpe = 0.822, Calmar = 0.551, Sharpe + Calmar = 1.373, W240, LGBM, ClsRtn001L1RAW
+      M0156: 1 # AUG Sharpe = 0.557, Calmar = 0.330, Sharpe + Calmar = 0.887, W240, Ridge, ClsRtn001L1RAW
+      M0302: 5 # BLK Sharpe = 1.106, Calmar = 0.994, Sharpe + Calmar = 2.100, W720, Ridge, ClsRtn001L1RAW
+      M0232: 5 # CHM Sharpe = 1.144, Calmar = 0.986, Sharpe + Calmar = 2.130, W480, Ridge, ClsRtn001L1RAW
+      M0253: 3 # MTL Sharpe = 0.722, Calmar = 0.493, Sharpe + Calmar = 1.214, W480, LGBM, ClsRtn001L1RAW
+      M0081: 3 # OIL Sharpe = 0.888, Calmar = 0.682, Sharpe + Calmar = 1.570, W120, Ridge, ClsRtn001L1RAW
 
   P01:
     target: OpnRtn001L1RAW
     weights:
-      M0647: 3 # AGR Sharpe = 0.332, Calmar = 0.219, Sharpe + Calmar = 0.551, W480, LGBM, OpnRtn001L1RAW
-      M0624: 1 # AUG Sharpe = 0.556, Calmar = 0.462, Sharpe + Calmar = 1.019, W480, LGBM, OpnRtn001L1RAW
-      M0518: 5 # BLK Sharpe = 0.748, Calmar = 0.959, Sharpe + Calmar = 1.708, W240, Ridge, OpnRtn001L1RAW
-      M0592: 5 # CHM Sharpe = 1.012, Calmar = 0.901, Sharpe + Calmar = 1.912, W480, Ridge, OpnRtn001L1RAW
-      M0619: 3 # MTL Sharpe = 0.421, Calmar = 0.241, Sharpe + Calmar = 0.662, W480, LGBM, OpnRtn001L1RAW
-      M0465: 3 # OIL Sharpe = 0.100, Calmar = 0.053, Sharpe + Calmar = 0.153, W120, LGBM, OpnRtn001L1RAW
+      M0539: 3 # AGR Sharpe = 0.784, Calmar = 0.574, Sharpe + Calmar = 1.359, W240, LGBM, OpnRtn001L1RAW
+      M0618: 1 # AUG Sharpe = 0.390, Calmar = 0.266, Sharpe + Calmar = 0.656, W480, LGBM, OpnRtn001L1RAW
+      M0662: 5 # BLK Sharpe = 1.050, Calmar = 0.896, Sharpe + Calmar = 1.946, W720, Ridge, OpnRtn001L1RAW
+      M0592: 5 # CHM Sharpe = 1.096, Calmar = 1.099, Sharpe + Calmar = 2.195, W480, Ridge, OpnRtn001L1RAW
+      M0637: 3 # MTL Sharpe = 0.432, Calmar = 0.199, Sharpe + Calmar = 0.631, W480, LGBM, OpnRtn001L1RAW
+      M0489: 3 # OIL Sharpe = 0.419, Calmar = 0.234, Sharpe + Calmar = 0.653, W120, LGBM, OpnRtn001L1RAW

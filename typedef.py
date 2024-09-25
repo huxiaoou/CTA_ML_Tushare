@@ -546,7 +546,7 @@ class CCfgFactorTA(CCfgFactor):
     mfi: int
     willr: int
     adosc: tuple[int, int]
-    obv: None
+    obv: int
     natr: int
 
     @property
@@ -609,7 +609,8 @@ class CCfgFactorTA(CCfgFactor):
 
     @property
     def name_obv(self) -> TFactorName:
-        return f"{self.factor_class}OBV_RAW"
+        timeperiod = self.obv
+        return f"{self.factor_class}OBVT{timeperiod}_RAW"
 
     @property
     def name_natr(self) -> TFactorName:

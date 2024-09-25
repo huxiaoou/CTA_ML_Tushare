@@ -1018,11 +1018,16 @@ class CFactorTA(CFactorRaw):
 
     def __cal_adosc(self, high: pd.Series, low: pd.Series, close: pd.Series, volume: pd.Series) -> pd.Series:
         fast, slow = self.cfg.adosc
-        return ta.ADOSC(high, low, close, volume, fastperiod=fast, slowperiod=slow)
+        adosc = ta.ADOSC(high, low, close, volume, fastperiod=fast, slowperiod=slow)
+        vol_ma = volume.rolling(slow).mean()
+        return adosc / vol_ma
 
     def __cal_obv(self, close: pd.Series, volume: pd.Series) -> pd.Series:
-        _ = self.cfg.obv
-        return ta.OBV(close, volume)
+        timeperiod = self.cfg.obv
+        obv = ta.OBV(close, volume)
+        diff_obv = obv - obv.shift(timeperiod)
+        vol_ma = volume.rolling(timeperiod).mean()
+        return diff_obv / vol_ma
 
     def __cal_natr(self, high: pd.Series, low: pd.Series, close: pd.Series) -> pd.Series:
         timeperiod = self.cfg.natr
@@ -1040,7 +1045,7 @@ class CFactorTA(CFactorRaw):
         )
         opn, close = major_data["openI"], major_data["closeI"]
         high, low = major_data["highI"], major_data["lowI"]
-        volume = major_data["vol_major"]
+        volume, amount = major_data["vol_major"], major_data["amount_major"]
 
         major_data[self.cfg.name_macd] = self.__cal_macd(close=close)
         major_data[self.cfg.name_bbands] = self.__cal_bbands(close=close)

@@ -37,13 +37,15 @@ class CMclrn:
             mclrn_mdl_dir: str,
             mclrn_prd_dir: str,
             universe: TUniverse,
+            facs_pool: TFactorsPool,
     ):
         self.using_instru = using_instru
         self.prototype = NotImplemented
         self.fitted_estimator = NotImplemented
 
         self.test = test
-        self.facs_pool: TFactorsPool = []
+        self.facs_pool: TFactorsPool = facs_pool
+        self.facs_pool_slc: TFactorsPool = []
         self.tst_ret_save_root_dir = tst_ret_save_root_dir
         self.factors_by_instru_dir = factors_by_instru_dir
         self.neutral_by_instru_dir = neutral_by_instru_dir
@@ -60,6 +62,13 @@ class CMclrn:
         return ns
 
     @property
+    def x_cols_slc(self) -> TFactorNames:
+        ns = []
+        for _, n, _ in self.facs_pool_slc:
+            ns.extend(n)
+        return ns
+
+    @property
     def y_col(self) -> TReturnName:
         return self.test.ret.ret_name
 
@@ -67,7 +76,7 @@ class CMclrn:
         self.fitted_estimator = None
         return 0
 
-    def get_slc_facs_pool(self, trade_date: str) -> TFactorsPool:
+    def update_facs_pool_slc(self, trade_date: str) -> None:
         raise NotImplementedError
 
     @staticmethod
@@ -181,10 +190,10 @@ class CMclrn:
         return aligned_data
 
     def get_X_y(self, aligned_data: pd.DataFrame) -> tuple[pd.DataFrame, pd.Series]:
-        return aligned_data[self.x_cols], aligned_data[self.y_col]
+        return aligned_data[self.x_cols_slc], aligned_data[self.y_col]
 
     def get_X(self, x_data: pd.DataFrame) -> pd.DataFrame:
-        return x_data[self.x_cols]
+        return x_data[self.x_cols_slc]
 
     def fit_estimator(self, x_data: pd.DataFrame, y_data: pd.Series):
         if self.using_instru:
@@ -225,18 +234,26 @@ class CMclrn:
         pred = self.fitted_estimator.predict(X=x)  # type:ignore
         return pd.Series(data=pred, name=self.y_col, index=x_data.index)
 
-    def train(self, model_update_day: str, sec_avlb_data: pd.DataFrame, calendar: CCalendar, verbose: bool):
+    def load_all_data(
+            self,
+            head_model_update_day: str,
+            tail_model_update_day: str,
+            calendar: CCalendar,
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+        trn_b_date = calendar.get_next_date(head_model_update_day, shift=-self.test.ret.shift - self.test.trn_win + 1)
+        trn_e_date = calendar.get_next_date(tail_model_update_day, shift=-self.test.ret.shift)
+        trn_s_date = calendar.get_next_date(trn_e_date, shift=1)
+        all_x_data, all_y_data = self.load_x(trn_b_date, trn_s_date), self.load_y(trn_b_date, trn_s_date)
+        return all_x_data, all_y_data
+
+    def train(self, model_update_day: str, aligned_data: pd.DataFrame, calendar: CCalendar, verbose: bool):
         model_update_month = model_update_day[0:6]
         trn_b_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift - self.test.trn_win + 1)
         trn_e_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift)
-        trn_s_date = calendar.get_next_date(trn_e_date, shift=1)
-        self.facs_pool = self.get_slc_facs_pool(trade_date=trn_e_date)
-        sec_avlb_data_m = self.truncate_data_by_date(sec_avlb_data, trn_b_date, trn_s_date)
-        x_data, y_data = self.load_x(trn_b_date, trn_s_date), self.load_y(trn_b_date, trn_s_date)
-        x_data, y_data = self.filter_by_sector(x_data, sec_avlb_data_m), self.filter_by_sector(y_data, sec_avlb_data_m)
-        aligned_data = self.aligned_xy(x_data, y_data)
-        aligned_data = self.drop_and_fill_nan(aligned_data)
-        x, y = self.get_X_y(aligned_data=aligned_data)
+        self.update_facs_pool_slc(trade_date=trn_e_date)
+        trn_aligned_data = aligned_data.query(f"trade_date >= '{trn_b_date}' & trade_date <= '{trn_e_date}'")
+        trn_aligned_data = self.drop_and_fill_nan(trn_aligned_data[self.x_cols_slc + [self.y_col]])
+        x, y = self.get_X_y(aligned_data=trn_aligned_data)
         self.fit_estimator(x_data=x, y_data=y)
         self.save_model(month_id=model_update_month)
         if verbose:
@@ -249,17 +266,25 @@ class CMclrn:
         return 0
 
     def process_trn(self, bgn_date: str, stp_date: str, calendar: CCalendar, verbose: bool):
-        sec_avlb_data = self.load_sector_available()
         model_update_days = calendar.get_last_days_in_range(bgn_date=bgn_date, stp_date=stp_date)
+        sec_avlb_data = self.load_sector_available()
+        all_x_data, all_y_data = self.load_all_data(
+            head_model_update_day=model_update_days[0],
+            tail_model_update_day=model_update_days[-1],
+            calendar=calendar
+        )
+        sec_x_data = self.filter_by_sector(all_x_data, sec_avlb_data)
+        sec_y_data = self.filter_by_sector(all_y_data, sec_avlb_data)
+        aligned_data = self.aligned_xy(sec_x_data, sec_y_data)
         for model_update_day in model_update_days:
-            self.train(model_update_day, sec_avlb_data, calendar, verbose)
+            self.train(model_update_day, aligned_data, calendar, verbose)
         return 0
 
     def predict(
             self,
             prd_month_id: str,
             prd_month_days: list[str],
-            sec_avlb_data: pd.DataFrame,
+            sec_x_data: pd.DataFrame,
             calendar: CCalendar,
             verbose: bool,
     ) -> pd.Series:
@@ -268,14 +293,11 @@ class CMclrn:
         if self.load_model(month_id=trn_month_id, verbose=verbose):
             model_update_day = calendar.get_last_day_of_month(trn_month_id)
             trn_e_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift)
+            self.update_facs_pool_slc(trade_date=trn_e_date)
             prd_b_date, prd_e_date = prd_month_days[0], prd_month_days[-1]
-            prd_s_date = calendar.get_next_date(prd_e_date, shift=1)
-            self.facs_pool = self.get_slc_facs_pool(trade_date=trn_e_date)
-            sec_avlb_data_m = self.truncate_data_by_date(sec_avlb_data, prd_b_date, prd_s_date)
-            x_data = self.load_x(prd_b_date, prd_s_date)
-            x_data = self.filter_by_sector(x_data, sec_avlb_data_m)
+            prd_x_data = sec_x_data.query(f"trade_date >= '{prd_b_date}' & trade_date <= '{prd_e_date}'")
+            x_data = self.get_X(x_data=prd_x_data)
             x_data = self.drop_and_fill_nan(x_data)
-            x_data = self.get_X(x_data=x_data)
             y_h_data = self.apply_estimator(x_data=x_data)
             if verbose:
                 logger.info(
@@ -289,11 +311,13 @@ class CMclrn:
             return pd.Series(dtype=np.float64)
 
     def process_prd(self, bgn_date: str, stp_date: str, calendar: CCalendar, verbose: bool) -> pd.DataFrame:
-        sec_avlb_data = self.load_sector_available()
         months_groups = calendar.split_by_month(dates=calendar.get_iter_list(bgn_date, stp_date))
+        sec_avlb_data = self.load_sector_available()
+        all_x_data = self.load_x(bgn_date, stp_date)
+        sec_x_data = self.filter_by_sector(all_x_data, sec_avlb_data)
         pred_res: list[pd.Series] = []
         for prd_month_id, prd_month_days in months_groups.items():
-            month_prediction = self.predict(prd_month_id, prd_month_days, sec_avlb_data, calendar, verbose)
+            month_prediction = self.predict(prd_month_id, prd_month_days, sec_x_data, calendar, verbose)
             pred_res.append(month_prediction)
         prediction = pd.concat(pred_res, axis=0, ignore_index=False)
         prediction.index = pd.MultiIndex.from_tuples(prediction.index, names=self.XY_INDEX)
@@ -333,6 +357,7 @@ class CMclrnFromFeatureSelection(CMclrn):
             mclrn_mdl_dir: str,
             mclrn_prd_dir: str,
             universe: TUniverse,
+            facs_pool: TFactorsPool,
     ):
         super().__init__(
             using_instru=using_instru,
@@ -344,6 +369,7 @@ class CMclrnFromFeatureSelection(CMclrn):
             mclrn_mdl_dir=mclrn_mdl_dir,
             mclrn_prd_dir=mclrn_prd_dir,
             universe=universe,
+            facs_pool=facs_pool,
         )
         test_slc_fac = CTestFtSlc(trn_win=test.trn_win, sector=test.sector, ret=test.ret)
         self.slc_fac_reader = CFeatSlcReaderAndWriter(
@@ -352,8 +378,8 @@ class CMclrnFromFeatureSelection(CMclrn):
             tst_ret_save_root_dir=tst_ret_save_root_dir,
         )
 
-    def get_slc_facs_pool(self, trade_date: str) -> TFactorsPool:
-        return self.slc_fac_reader.get_slc_facs_pool(
+    def update_facs_pool_slc(self, trade_date: str) -> None:
+        self.facs_pool_slc = self.slc_fac_reader.get_slc_facs_pool(
             trade_date=trade_date,
             factors_by_instru_dir=self.factors_by_instru_dir,
             neutral_by_instru_dir=self.neutral_by_instru_dir,
@@ -440,6 +466,7 @@ def process_for_cMclrn(
         mclrn_mdl_dir: str,
         mclrn_prd_dir: str,
         universe: TUniverse,
+        facs_pool: TFactorsPool,
         bgn_date: str,
         stp_date: str,
         calendar: CCalendar,
@@ -463,6 +490,7 @@ def process_for_cMclrn(
         mclrn_mdl_dir=mclrn_mdl_dir,
         mclrn_prd_dir=mclrn_prd_dir,
         universe=universe,
+        facs_pool=facs_pool,
         **test.model.model_args,
     )
     os.environ["OMP_NUM_THREADS"] = "8"
@@ -481,6 +509,7 @@ def main_train_and_predict(
         mclrn_mdl_dir: str,
         mclrn_prd_dir: str,
         universe: TUniverse,
+        facs_pool: TFactorsPool,
         bgn_date: str,
         stp_date: str,
         calendar: CCalendar,
@@ -506,6 +535,7 @@ def main_train_and_predict(
                             "mclrn_mdl_dir": mclrn_mdl_dir,
                             "mclrn_prd_dir": mclrn_prd_dir,
                             "universe": universe,
+                            "facs_pool": facs_pool,
                             "bgn_date": bgn_date,
                             "stp_date": stp_date,
                             "calendar": calendar,
@@ -529,6 +559,7 @@ def main_train_and_predict(
                 mclrn_mdl_dir=mclrn_mdl_dir,
                 mclrn_prd_dir=mclrn_prd_dir,
                 universe=universe,
+                facs_pool=facs_pool,
                 bgn_date=bgn_date,
                 stp_date=stp_date,
                 calendar=calendar,

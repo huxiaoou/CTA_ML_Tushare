@@ -480,6 +480,7 @@ if __name__ == "__main__":
             from solutions.mclrn_mdl_parser import load_config_models
             from solutions.mclrn_mdl_trn_prd import main_train_and_predict
             from solutions.shared import gen_model_tests
+            from project_cfg import factors_pool_neu
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
             test_mdls = gen_model_tests(config_models=config_models)
@@ -493,6 +494,7 @@ if __name__ == "__main__":
                 mclrn_mdl_dir=proj_cfg.mclrn_mdl_dir,
                 mclrn_prd_dir=proj_cfg.mclrn_prd_dir,
                 universe=proj_cfg.universe,
+                facs_pool=factors_pool_neu,
                 bgn_date=bgn_date,
                 stp_date=stp_date,
                 calendar=calendar,

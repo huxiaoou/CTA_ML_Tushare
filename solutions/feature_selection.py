@@ -243,19 +243,26 @@ class CFeatSlc(CFeatSlcReaderAndWriter):
             )
             raise ValueError("No features are selected")
 
+    def load_all_data(
+            self,
+            head_model_update_day: str,
+            tail_model_update_day: str,
+            calendar: CCalendar,
+    ) -> tuple[pd.DataFrame, pd.DataFrame]:
+        trn_b_date = calendar.get_next_date(head_model_update_day, shift=-self.test.ret.shift - self.test.trn_win + 1)
+        trn_e_date = calendar.get_next_date(tail_model_update_day, shift=-self.test.ret.shift)
+        trn_s_date = calendar.get_next_date(trn_e_date, shift=1)
+        all_x_data, all_y_data = self.load_x(trn_b_date, trn_s_date), self.load_y(trn_b_date, trn_s_date)
+        return all_x_data, all_y_data
+
     def select(
-            self, model_update_day: str, sec_avlb_data: pd.DataFrame, calendar: CCalendar, verbose: bool
+            self, model_update_day: str, aligned_data: pd.DataFrame, calendar: CCalendar, verbose: bool,
     ) -> pd.DataFrame:
         model_update_month = model_update_day[0:6]
         trn_b_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift - self.test.trn_win + 1)
         trn_e_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift)
-        trn_s_date = calendar.get_next_date(trn_e_date, shift=1)
-        sec_avlb_data_m = self.truncate_data_by_date(sec_avlb_data, trn_b_date, trn_s_date)
-        x_data, y_data = self.load_x(trn_b_date, trn_s_date), self.load_y(trn_b_date, trn_s_date)
-        x_data, y_data = self.filter_by_sector(x_data, sec_avlb_data_m), self.filter_by_sector(y_data, sec_avlb_data_m)
-        aligned_data = self.aligned_xy(x_data, y_data)
-        aligned_data = self.drop_and_fill_nan(aligned_data)
-        x, y = self.get_X_y(aligned_data=aligned_data)
+        trn_aligned_data = aligned_data.query(f"trade_date >= '{trn_b_date}' & trade_date <= '{trn_e_date}'")
+        x, y = self.get_X_y(aligned_data=trn_aligned_data)
         factor_names = self.core(x_data=x, y_data=y, trade_date=trn_e_date, verbose=verbose)
         factor_class, is_neu = self.get_factor_class_and_neu_tag(factor_names=factor_names)
         selected_feats = self.get_selected_feats(trn_e_date, factor_class, factor_names, is_neu)
@@ -269,11 +276,20 @@ class CFeatSlc(CFeatSlcReaderAndWriter):
         return selected_feats
 
     def main(self, bgn_date: str, stp_date: str, calendar: CCalendar, verbose: bool):
-        sec_avlb_data = self.load_sector_available()
         model_update_days = calendar.get_last_days_in_range(bgn_date=bgn_date, stp_date=stp_date)
+        sec_avlb_data = self.load_sector_available()
+        all_x_data, all_y_data = self.load_all_data(
+            head_model_update_day=model_update_days[0],
+            tail_model_update_day=model_update_days[-1],
+            calendar=calendar
+        )
+        sec_x_data = self.filter_by_sector(all_x_data, sec_avlb_data)
+        sec_y_data = self.filter_by_sector(all_y_data, sec_avlb_data)
+        aligned_data = self.aligned_xy(sec_x_data, sec_y_data)
+        aligned_data = self.drop_and_fill_nan(aligned_data)
         selected_features: list[pd.DataFrame] = []
         for model_update_day in model_update_days:
-            slc_feats = self.select(model_update_day, sec_avlb_data, calendar, verbose)
+            slc_feats = self.select(model_update_day, aligned_data, calendar, verbose)
             if not slc_feats.empty:
                 selected_features.append(slc_feats)
         new_data = pd.concat(selected_features, axis=0, ignore_index=True)

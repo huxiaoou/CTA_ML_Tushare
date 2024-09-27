@@ -217,7 +217,11 @@ class CMclrn:
         if os.path.exists(model_path):
             self.fitted_estimator = sio.load(
                 model_path,
-                trusted=['collections.defaultdict', 'lightgbm.basic.Booster', 'lightgbm.sklearn.LGBMRegressor'],
+                trusted=[
+                    'collections.defaultdict',
+                    'lightgbm.basic.Booster', 'lightgbm.sklearn.LGBMRegressor',
+                    'xgboost.core.Booster', 'xgboost.sklearn.XGBRegressor',
+                ],
             )
             return True
         else:
@@ -447,6 +451,7 @@ class CMclrnXGB(CMclrnFromFeatureSelection):
             # other fixed parameters
             verbosity=0,
             random_state=self.RANDOM_STATE,
+            device="cuda",  # cpu maybe faster for data not in large scale.
         )
 
 

@@ -10,7 +10,7 @@ from husfort.qplot import CPlotLines
 from solutions.shared import gen_nav_db, group_sim_args, group_sim_args_by_sector
 from typedef import CSimArgs
 from typedef import TSimArgsPriKey, TSimArgsSecKey
-from typedef import TSimArgsPriKeyBySec, TSimArgsSecKeyBySec
+from typedef import TSimArgsPriKeyBySec, TSimArgsSecKeyBySec, TPid
 
 """
 Part I: Basic class
@@ -302,7 +302,7 @@ def process_for_evl_portfolio(portfolio_id: str, simu_pfo_dir: str, bgn_date: st
 
 
 def main_eval_portfolios(
-        portfolios: dict[str, dict],
+        portfolios: list[TPid],
         simu_pfo_dir: str,
         bgn_date: str,
         stp_date: str,
@@ -356,7 +356,7 @@ def main_eval_portfolios(
 
 
 def main_plot_portfolios(
-        portfolios: dict[str, dict],
+        portfolios: list[TPid],
         simu_pfo_dir: str,
         eval_pfo_dir: str,
         bgn_date: str,
@@ -371,21 +371,13 @@ def main_plot_portfolios(
     nav_df = (ret_df + 1).cumprod()
 
     artist = CPlotLines(
-        plot_data=nav_df[["P00", "P01"]],
-        fig_name="portfolios_cls_opn",
+        plot_data=nav_df,
+        fig_name="portfolios_nav",
         fig_save_dir=fig_save_dir,
         fig_save_type="pdf",
-        line_color=["#0000CD", "#DC143C"],
-    )
-    artist.plot()
-    artist.save()
-
-    artist = CPlotLines(
-        plot_data=nav_df[["P00"]],
-        fig_name="portfolios_cls",
-        fig_save_dir=fig_save_dir,
-        fig_save_type="pdf",
-        line_color=["#0000CD", "#DC143C"],
+        line_color=["#0000CD", "#DC143C", "#DAA520"],
+        line_style=["-.", "-.", "-"],
+        line_width=1.5,
     )
     artist.plot()
     artist.save()

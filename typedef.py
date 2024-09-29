@@ -87,6 +87,7 @@ class CCfgProj:
     feat_slc: CCfgFeatSlc
     mclrn: dict[str, dict]
     portfolios: dict[str, dict]
+    omega: dict
 
 
 @dataclass(frozen=True)

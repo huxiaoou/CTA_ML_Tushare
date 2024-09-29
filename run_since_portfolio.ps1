@@ -20,4 +20,5 @@ Remove-Item -Recurse E:\Data\Projects\CTA_ML_Tushare\evaluations\portfolios\*
 
 python main.py --bgn $bgn_date_sig --stp $stp_date signals --type portfolios
 python main.py --bgn $bgn_date_sim --stp $stp_date simulations --type portfolios
+python main.py --bgn $bgn_date_sim --stp $stp_date simulations --type omega
 python main.py --bgn $bgn_date_sim --stp $stp_date evaluations --type portfolios

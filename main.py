@@ -56,7 +56,7 @@ def parse_args():
 
     # switch: simulations
     arg_parser_sub = arg_parser_subs.add_parser(name="simulations", help="simulate from signals")
-    arg_parser_sub.add_argument("--type", type=str, choices=("models", "portfolios"))
+    arg_parser_sub.add_argument("--type", type=str, choices=("models", "portfolios", "omega"))
 
     # switch: evaluations
     arg_parser_sub = arg_parser_subs.add_parser(name="evaluations", help="evaluate simulations")
@@ -590,6 +590,17 @@ if __name__ == "__main__":
                 call_multiprocess=not args.nomp,
                 processes=args.processes,
             )
+        elif args.type == "omega":
+            from solutions.simulations import main_simu_from_nav
+
+            main_simu_from_nav(
+                save_id=proj_cfg.omega["pid"],
+                portfolio_ids=proj_cfg.omega["components"],
+                bgn_date=bgn_date,
+                stp_date=stp_date,
+                sim_save_dir=proj_cfg.simu_pfo_dir,
+                calendar=calendar,
+            )
         else:
             raise ValueError(f"args.type == {args.type} is illegal")
     elif args.switch == "evaluations":
@@ -637,7 +648,7 @@ if __name__ == "__main__":
             from solutions.evaluations import main_eval_portfolios, main_plot_portfolios
 
             main_eval_portfolios(
-                portfolios=proj_cfg.portfolios,
+                portfolios=list(proj_cfg.portfolios) + [proj_cfg.omega["pid"]],
                 simu_pfo_dir=proj_cfg.simu_pfo_dir,
                 bgn_date=bgn_date,
                 stp_date=stp_date,
@@ -645,7 +656,7 @@ if __name__ == "__main__":
                 processes=args.processes,
             )
             main_plot_portfolios(
-                portfolios=proj_cfg.portfolios,
+                portfolios=list(proj_cfg.portfolios) + [proj_cfg.omega["pid"]],
                 simu_pfo_dir=proj_cfg.simu_pfo_dir,
                 eval_pfo_dir=proj_cfg.eval_pfo_dir,
                 bgn_date=bgn_date,

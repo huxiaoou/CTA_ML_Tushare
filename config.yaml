@@ -371,3 +371,6 @@ portfolios:
       "M1111", # MTL Sharpe = 0.804, Calmar = 0.608, Sharpe + Calmar = 1.413, W480, XGB, OpnRtn001L1RAW
       "M0789", # OIL Sharpe = 0.397, Calmar = 0.221, Sharpe + Calmar = 0.619, W120, LGBM, OpnRtn001L1RAW
     ]
+omega:
+  pid: "P-OMEGA"
+  components: [ "P00", "P01" ]

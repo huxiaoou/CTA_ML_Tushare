@@ -1,11 +1,12 @@
 import multiprocessing as mp
+import numpy as np
 import pandas as pd
 from rich.progress import track, Progress
 from husfort.qutility import qtimer, error_handler, check_and_makedirs
 from husfort.qcalendar import CCalendar
 from husfort.qsqlite import CMgrSqlDb
 from solutions.shared import gen_nav_db
-from typedef import CSimArgs
+from typedef import CSimArgs, TPid
 
 
 class CSim:
@@ -164,3 +165,38 @@ def main_simulations(
                 calendar=calendar,
             )
     return 0
+
+
+def main_simu_from_nav(
+        save_id: TPid, portfolio_ids: list[TPid], bgn_date: str, stp_date: str, sim_save_dir: str, calendar: CCalendar,
+) -> None:
+    db_struct_sim = gen_nav_db(sim_save_dir, save_id=save_id)
+    sqldb = CMgrSqlDb(
+        db_save_dir=db_struct_sim.db_save_dir,
+        db_name=db_struct_sim.db_name,
+        table=db_struct_sim.table,
+        mode="a",
+    )
+    last_nav = sqldb.last_val(val="nav", val_if_none=1.0)
+
+    portfolio_simu_data = {}
+    for portfolio_id in portfolio_ids:
+        pfo_db_struct_sim = gen_nav_db(sim_save_dir, save_id=portfolio_id)
+        pfo_sqldb = CMgrSqlDb(
+            db_save_dir=pfo_db_struct_sim.db_save_dir,
+            db_name=pfo_db_struct_sim.db_name,
+            table=pfo_db_struct_sim.table,
+            mode="r",
+        )
+        portfolio_nav = pfo_sqldb.read_by_range(bgn_date, stp_date, value_columns=["trade_date", "net_ret"])
+        portfolio_simu_data[portfolio_id] = portfolio_nav.set_index("trade_date")["net_ret"]
+    simu_data = pd.DataFrame(portfolio_simu_data)
+    simu_data["net_ret"] = simu_data.mean(axis=1)
+    simu_data["raw_ret"] = np.nan
+    simu_data["dlt_wgt"] = np.nan
+    simu_data["cost"] = np.nan
+    simu_data["nav"] = (simu_data["net_ret"] + 1).cumprod() * last_nav
+    simu_data = simu_data.reset_index()
+    simu_data = simu_data[db_struct_sim.table.vars.names]
+    if sqldb.check_continuity(incoming_date=simu_data["trade_date"].iloc[0], calendar=calendar) == 0:
+        sqldb.update(update_data=simu_data)

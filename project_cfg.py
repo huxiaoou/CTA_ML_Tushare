@@ -114,6 +114,7 @@ proj_cfg = CCfgProj(
     feat_slc=CCfgFeatSlc(**_config["feature_selection"]),
     mclrn=_config["mclrn"],
     portfolios=_config["portfolios"],
+    omega=_config["omega"],
 )
 
 # ---------- databases structure ----------

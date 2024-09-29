@@ -116,7 +116,7 @@ def gen_nav_db(db_save_dir: str, save_id: str) -> CDbStruct:
         db_save_dir=db_save_dir,
         db_name=f"{save_id}.db",
         table=CSqlTable(
-            name="factor",
+            name="nav",
             primary_keys=[CSqlVar("trade_date", "TEXT")],
             value_columns=[
                 CSqlVar("raw_ret", "REAL"),

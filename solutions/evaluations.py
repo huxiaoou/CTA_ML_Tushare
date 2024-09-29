@@ -349,9 +349,12 @@ def main_eval_portfolios(
         "P00", "sharpe_plus_calmar"]
     p01_sharpe, p01_calmar, p01_sum = desc_data.at["P01", "sharpe"], desc_data.at["P01", "calmar"], desc_data.at[
         "P01", "sharpe_plus_calmar"]
-    summary = f"P00=({p00_sharpe:.3f},{p00_calmar:.3f},{p00_sum:.3f}), P01=({p01_sharpe:.3f},{p01_calmar:.3f},{p01_sum:.3f})"
+    p0g_sharpe, p0g_calmar, p0g_sum = desc_data.at["P-OMEGA", "sharpe"], desc_data.at["P-OMEGA", "calmar"], \
+        desc_data.at["P-OMEGA", "sharpe_plus_calmar"]
+    summary = f"P00=({p00_sharpe:.3f},{p00_calmar:.3f},{p00_sum:.3f}), " \
+              f"P01=({p01_sharpe:.3f},{p01_calmar:.3f},{p01_sum:.3f}), " \
+              f"P-OMEGA=({p0g_sharpe:.3f},{p0g_calmar:.3f},{p0g_sum:.3f})"
     print(summary)
-
     return 0
 
 

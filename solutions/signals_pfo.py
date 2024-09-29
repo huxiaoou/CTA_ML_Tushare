@@ -13,7 +13,7 @@ class CSignalPortfolio:
             self,
             pid: str,
             target: str,
-            weights: dict[TUniqueId, float],
+            weights: list[TUniqueId],
             portfolio_sim_args: dict[str, CSimArgs],
             signals_pfo_dir: str,
     ):
@@ -35,19 +35,26 @@ class CSignalPortfolio:
         return data
 
     @staticmethod
-    def reformat_sig(sig_data: pd.DataFrame) -> pd.Series:
-        new_data = sig_data[["trade_date", "instrument", "weight"]].fillna(0)
-        return new_data.set_index(["trade_date", "instrument"])["weight"]
+    def multiply_sector_weight(df: pd.DataFrame) -> pd.DataFrame:
+        _wgt = "weight"
+        size = len(df)
+        df[_wgt] = df[_wgt] * size
+        return df
 
-    def load(self, bgn_date: str, stp_date: str) -> tuple[pd.DataFrame, pd.Series]:
-        signal_data: dict[str, pd.Series] = {}
+    def reformat_sig(self, sig_data: pd.DataFrame) -> pd.DataFrame:
+        new_data = sig_data[["trade_date", "instrument", "weight"]].fillna(0)
+        new_data_gt0 = new_data.query("abs(weight) > 0")
+        new_data_adj = new_data_gt0.groupby(by="trade_date", group_keys=False).apply(self.multiply_sector_weight)
+        return new_data_adj
+
+    def load(self, bgn_date: str, stp_date: str) -> pd.DataFrame:
+        sec_signal_dfs: list[pd.DataFrame] = []
         for unique_id in self.weights:
             sim_args = self.portfolio_sim_args[unique_id]
             mdl_weight = self.load_from_sim_args(sim_args, bgn_date, stp_date)
-            signal_data[unique_id] = self.reformat_sig(mdl_weight)
-        signal_df = pd.DataFrame(signal_data)
-        signal_wgt = pd.Series(self.weights)
-        return signal_df, signal_wgt
+            sec_signal_dfs.append(self.reformat_sig(mdl_weight))
+        signal_data = pd.concat(sec_signal_dfs, axis=0, ignore_index=True)
+        return signal_data
 
     @staticmethod
     def normalize(df: pd.DataFrame) -> pd.DataFrame:
@@ -57,10 +64,8 @@ class CSignalPortfolio:
             df[_wgt] = df[_wgt] / abs_sum
         return df
 
-    def cal_portfolio_weights(self, signal_df: pd.DataFrame, signal_wgt: pd.Series) -> pd.DataFrame:
-        wgt_sum_data = signal_df.fillna(0) @ signal_wgt
-        wgt_sum_data: pd.DataFrame = wgt_sum_data.reset_index().rename(columns={0: "weight"})
-        wgt_sum_data_norm = wgt_sum_data.groupby(by="trade_date", group_keys=False).apply(self.normalize)
+    def cal_portfolio_weights(self, signal_data: pd.DataFrame) -> pd.DataFrame:
+        wgt_sum_data_norm = signal_data.groupby(by="trade_date", group_keys=False).apply(self.normalize)
         return wgt_sum_data_norm
 
     def save(self, new_data: pd.DataFrame, calendar: CCalendar):
@@ -76,8 +81,8 @@ class CSignalPortfolio:
         return 0
 
     def main(self, bgn_date: str, stp_date: str, calendar: CCalendar):
-        signal_df, signal_wgt = self.load(bgn_date, stp_date)
-        wgt_sum_data_norm = self.cal_portfolio_weights(signal_df, signal_wgt)
+        signal_data = self.load(bgn_date, stp_date)
+        wgt_sum_data_norm = self.cal_portfolio_weights(signal_data)
         self.save(wgt_sum_data_norm, calendar)
         return 0
 

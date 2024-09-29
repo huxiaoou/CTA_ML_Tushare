@@ -140,17 +140,8 @@ def main_eval_mdl(
         sharpe_plus_calmar = ret_name_data["sharpe_plus_calmar"].iloc[0]
         win, mdl_desc = ret_name_data["trn_win"].iloc[0], ret_name_data["model_desc"].iloc[0]
         ret_tgt = ret_name_data["ret_tgt"].iloc[0]
-        w = {
-            "AUG": 1,
-            "MTL": 3,
-            "BLK": 5,
-            "AGR": 3,
-            "CHM": 5,
-            "OIL": 3,
-            "EQT": 3,
-        }[sector]
         print(
-            f"{uid}: {w} # {sector} "
+            f"\"{uid}\", # {sector} "
             f"Sharpe = {sharpe:.3f}, Calmar = {calmar:.3f}, Sharpe + Calmar = {sharpe_plus_calmar:.3f}, "
             f"{win}, {mdl_desc}, {ret_tgt}"
         )

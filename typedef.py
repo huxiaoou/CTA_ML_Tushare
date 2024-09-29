@@ -756,7 +756,7 @@ class CSimArgs:
 
 TPid = str
 TTarget = str
-TWeights = dict[TUniqueId, float]
+TWeights = list[TUniqueId]
 
 
 @dataclass(frozen=True)

@@ -4,8 +4,7 @@ from husfort.qutility import SFR
 from husfort.qsqlite import CDbStruct, CSqlTable, CSqlVar
 from typedef import TFactorClass, TFactorNames, CTestFtSlc, CTestMdl, CSimArgs
 from typedef import CRet, CModel
-from typedef import TSimArgsGrp, TSimArgsPriKey, TSimArgsSecKey
-from typedef import TSimArgsGrpBySec, TSimArgsPriKeyBySec, TSimArgsSecKeyBySec
+from typedef import TSimArgsGrp, TSimArgsPriKey, TSimArgsSecKey, TSimArgsPriVal
 from typedef import CPortfolioArgs, TUniqueId
 
 
@@ -209,23 +208,12 @@ def get_sim_args_from_portfolios(
 def group_sim_args(sim_args_list: list[CSimArgs]) -> TSimArgsGrp:
     grouped_sim_args: TSimArgsGrp = {}
     for sim_args in sim_args_list:
-        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_args.sim_id.split(".")
-        key0, key1 = TSimArgsPriKey((ret_class, trn_win, model_desc, ret_name)), TSimArgsSecKey((sector, unique_id))
+        ret_class, trn_win, model_desc, unique_id, ret_name, tgt_ret_name = sim_args.sim_id.split(".")
+        key0, key1 = TSimArgsPriKey((ret_class, trn_win, model_desc, ret_name)), TSimArgsSecKey(unique_id)
         if key0 not in grouped_sim_args:
             grouped_sim_args[key0] = {}
-        grouped_sim_args[key0][key1] = sim_args
-    return grouped_sim_args
-
-
-def group_sim_args_by_sector(sim_args_list: list[CSimArgs]) -> TSimArgsGrpBySec:
-    grouped_sim_args: TSimArgsGrpBySec = {}
-    for sim_args in sim_args_list:
-        ret_class, trn_win, model_desc, sector, unique_id, ret_name, tgt_ret_name = sim_args.sim_id.split(".")
-        key0, key1 = TSimArgsPriKeyBySec(sector), TSimArgsSecKeyBySec(
-            (ret_class, trn_win, model_desc, ret_name, unique_id))
-        if key0 not in grouped_sim_args:
-            grouped_sim_args[key0] = {}
-        grouped_sim_args[key0][key1] = sim_args
+        d: TSimArgsPriVal = {key1: sim_args}
+        grouped_sim_args[key0].update(d)
     return grouped_sim_args
 
 

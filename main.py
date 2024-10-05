@@ -606,7 +606,7 @@ if __name__ == "__main__":
     elif args.switch == "evaluations":
         if args.type == "models":
             from solutions.mclrn_mdl_parser import load_config_models
-            from solutions.evaluations import main_eval_mdl, main_plot_sims, main_plot_sims_by_sector
+            from solutions.evaluations import main_eval_mdl, main_plot_sims
             from solutions.shared import gen_model_tests, get_sim_args_from_test_models
 
             config_models = load_config_models(cfg_mdl_dir=proj_cfg.mclrn_dir, cfg_mdl_file=proj_cfg.mclrn_cfg_file)
@@ -627,15 +627,6 @@ if __name__ == "__main__":
                 processes=args.processes,
             )
             main_plot_sims(
-                sim_args_list=sim_args_list,
-                simu_mdl_dir=proj_cfg.simu_mdl_dir,
-                eval_mdl_dir=proj_cfg.eval_mdl_dir,
-                bgn_date=bgn_date,
-                stp_date=stp_date,
-                call_multiprocess=not args.nomp,
-                processes=args.processes,
-            )
-            main_plot_sims_by_sector(
                 sim_args_list=sim_args_list,
                 simu_mdl_dir=proj_cfg.simu_mdl_dir,
                 eval_mdl_dir=proj_cfg.eval_mdl_dir,

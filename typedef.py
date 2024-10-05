@@ -765,12 +765,7 @@ class CPortfolioArgs:
     portfolio_sim_args: dict[str, CSimArgs]
 
 
-TSimArgsPriKey = tuple[TReturnClass, TWinTxt, TMdlDesc, TSector]  # ret_class, trn_win, model_desc, sector
-TSimArgsSecKey = tuple[TSector, TUniqueId]  # sector, unique_id
-TSimArgsGrp = dict[TSimArgsPriKey, dict[TSimArgsSecKey, CSimArgs]]
-
-TSimArgsPriKeyBySec = TSector  # sector
-TSimArgsSecKeyBySec = tuple[
-    TReturnClass, TWinTxt, TMdlDesc, TReturnName, TUniqueId  # (ret_class, trn_win, model_desc, ret_name, unique_id)
-]
-TSimArgsGrpBySec = dict[TSimArgsPriKeyBySec, dict[TSimArgsSecKeyBySec, CSimArgs]]
+TSimArgsPriKey = tuple[TReturnClass, TWinTxt, TMdlDesc, TReturnName]  # ret_class, trn_win, model_desc, ret_name
+TSimArgsSecKey = TUniqueId  # unique_id
+TSimArgsPriVal = dict[TSimArgsSecKey, CSimArgs]
+TSimArgsGrp = dict[TSimArgsPriKey, TSimArgsPriVal]

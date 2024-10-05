@@ -276,9 +276,9 @@ class CMclrn:
             tail_model_update_day=model_update_days[-1],
             calendar=calendar
         )
-        sec_x_data = self.filter_by_avlb(all_x_data, avlb_data)
-        sec_y_data = self.filter_by_avlb(all_y_data, avlb_data)
-        aligned_data = self.aligned_xy(sec_x_data, sec_y_data)
+        avlb_x_data = self.filter_by_avlb(all_x_data, avlb_data)
+        avlb_y_data = self.filter_by_avlb(all_y_data, avlb_data)
+        aligned_data = self.aligned_xy(avlb_x_data, avlb_y_data)
         for model_update_day in model_update_days:
             self.train(model_update_day, aligned_data, calendar, verbose)
         return 0
@@ -287,7 +287,7 @@ class CMclrn:
             self,
             prd_month_id: str,
             prd_month_days: list[str],
-            sec_x_data: pd.DataFrame,
+            avlb_x_data: pd.DataFrame,
             calendar: CCalendar,
             verbose: bool,
     ) -> pd.Series:
@@ -298,7 +298,7 @@ class CMclrn:
             trn_e_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift)
             self.update_facs_pool_slc(trade_date=trn_e_date)
             prd_b_date, prd_e_date = prd_month_days[0], prd_month_days[-1]
-            prd_x_data = sec_x_data.query(f"trade_date >= '{prd_b_date}' & trade_date <= '{prd_e_date}'")
+            prd_x_data = avlb_x_data.query(f"trade_date >= '{prd_b_date}' & trade_date <= '{prd_e_date}'")
             x_data = self.get_X(x_data=prd_x_data)
             x_data = self.drop_and_fill_nan(x_data)
             y_h_data = self.apply_estimator(x_data=x_data)
@@ -317,10 +317,10 @@ class CMclrn:
         months_groups = calendar.split_by_month(dates=calendar.get_iter_list(bgn_date, stp_date))
         avlb_data = self.load_available()
         all_x_data = self.load_x(bgn_date, stp_date)
-        sec_x_data = self.filter_by_avlb(all_x_data, avlb_data)
+        avlb_x_data = self.filter_by_avlb(all_x_data, avlb_data)
         pred_res: list[pd.Series] = []
         for prd_month_id, prd_month_days in months_groups.items():
-            month_prediction = self.predict(prd_month_id, prd_month_days, sec_x_data, calendar, verbose)
+            month_prediction = self.predict(prd_month_id, prd_month_days, avlb_x_data, calendar, verbose)
             pred_res.append(month_prediction)
         prediction = pd.concat(pred_res, axis=0, ignore_index=False)
         prediction.index = pd.MultiIndex.from_tuples(prediction.index, names=self.XY_INDEX)

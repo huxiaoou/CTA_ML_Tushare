@@ -281,9 +281,9 @@ class CFeatSlc(CFeatSlcReaderAndWriter):
             tail_model_update_day=model_update_days[-1],
             calendar=calendar
         )
-        sec_x_data = self.filter_by_avlb(all_x_data, avlb_data)
-        sec_y_data = self.filter_by_avlb(all_y_data, avlb_data)
-        aligned_data = self.aligned_xy(sec_x_data, sec_y_data)
+        avlb_x_data = self.filter_by_avlb(all_x_data, avlb_data)
+        avlb_y_data = self.filter_by_avlb(all_y_data, avlb_data)
+        aligned_data = self.aligned_xy(avlb_x_data, avlb_y_data)
         aligned_data = self.drop_and_fill_nan(aligned_data)
         selected_features: list[pd.DataFrame] = []
         for model_update_day in model_update_days:

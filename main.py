@@ -516,6 +516,7 @@ if __name__ == "__main__":
                 prd_save_root_dir=proj_cfg.mclrn_prd_dir,
                 sig_mdl_save_root_dir=proj_cfg.signals_mdl_dir,
                 maw=proj_cfg.const.MAW,
+                universe=proj_cfg.universe,
                 bgn_date=bgn_date,
                 stp_date=stp_date,
                 calendar=calendar,

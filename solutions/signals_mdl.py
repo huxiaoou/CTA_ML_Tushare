@@ -5,7 +5,7 @@ from husfort.qutility import qtimer, error_handler, check_and_makedirs
 from husfort.qsqlite import CMgrSqlDb
 from husfort.qcalendar import CCalendar
 from solutions.shared import gen_prdct_db, gen_sig_mdl_db
-from typedef import CTestMdl
+from typedef import CTestMdl, TUniverse
 
 """
 Part I: Signals from single mdl
@@ -72,22 +72,39 @@ class CSignal:
 
 
 class CSignalCrsSec(CSignal):
+    def __init__(self, input_dir: str, output_dir: str, test_mdl: CTestMdl, maw: int, universe: TUniverse):
+        super().__init__(input_dir, output_dir, test_mdl, maw)
+        self.universe = universe
+
+    def _add_sector(self, clean_data: pd.DataFrame) -> None:
+        clean_data["sector"] = clean_data["instrument"].map(lambda _: self.universe[_].sectorL1)
+
     @staticmethod
-    def map_prediction_to_signal(data: pd.DataFrame) -> pd.DataFrame:
+    def add_rel_weight(data: pd.DataFrame) -> pd.DataFrame:
         n = len(data)
         s = [1] * int(n / 2) + [0] * (n % 2) + [-1] * int(n / 2)
-        data["weight"] = s
-        if (abs_sum := data["weight"].abs().sum()) > 0:
-            data["weight"] = data["weight"] / abs_sum
-        return data[["trade_date", "instrument", "weight"]]
+        data["rel_weight"] = s
+        return data
+
+    @staticmethod
+    def add_weight(data: pd.DataFrame) -> pd.DataFrame:
+        if (abs_sum := data["rel_weight"].abs().sum()) > 0:
+            data["weight"] = data["rel_weight"] / abs_sum
+        else:
+            data["weight"] = 0
+        return data
 
     def cal_signal(self, clean_data: pd.DataFrame) -> pd.DataFrame:
+        self._add_sector(clean_data)
         sorted_data = clean_data.sort_values(
-            by=["trade_date", self.test_mdl.ret.ret_name, "instrument"], ascending=[True, False, True]
+            by=["trade_date", "sector", self.test_mdl.ret.ret_name, "instrument"],
+            ascending=[True, True, False, True],
         )
-        grouped_data = sorted_data.groupby(by=["trade_date"], group_keys=False)
-        signal_data = grouped_data.apply(self.map_prediction_to_signal)
-        return signal_data
+        grouped_by_sec_data = sorted_data.groupby(by=["trade_date", "sector"], group_keys=False)
+        signal_by_sec_data = grouped_by_sec_data.apply(self.add_rel_weight)
+        grouped_data = signal_by_sec_data.groupby(by=["trade_date"], group_keys=False)
+        signal_data = grouped_data.apply(self.add_weight)
+        return signal_data[["trade_date", "instrument", "weight"]]
 
 
 def process_for_signal(
@@ -95,11 +112,12 @@ def process_for_signal(
         output_dir: str,
         test_mdl: CTestMdl,
         maw: int,
+        universe: TUniverse,
         bgn_date: str,
         stp_date: str,
         calendar: CCalendar,
 ):
-    signal = CSignalCrsSec(input_dir=input_dir, output_dir=output_dir, test_mdl=test_mdl, maw=maw)
+    signal = CSignalCrsSec(input_dir=input_dir, output_dir=output_dir, test_mdl=test_mdl, maw=maw, universe=universe)
     signal.main(bgn_date, stp_date, calendar)
     return 0
 
@@ -110,6 +128,7 @@ def main_signals_models(
         prd_save_root_dir: str,
         sig_mdl_save_root_dir: str,
         maw: int,
+        universe: TUniverse,
         bgn_date: str,
         stp_date: str,
         calendar: CCalendar,
@@ -129,6 +148,7 @@ def main_signals_models(
                             "output_dir": sig_mdl_save_root_dir,
                             "test_mdl": test_mdl,
                             "maw": maw,
+                            "universe": universe,
                             "bgn_date": bgn_date,
                             "stp_date": stp_date,
                             "calendar": calendar,
@@ -145,6 +165,7 @@ def main_signals_models(
                 output_dir=sig_mdl_save_root_dir,
                 test_mdl=test_mdl,
                 maw=maw,
+                universe=universe,
                 bgn_date=bgn_date,
                 stp_date=stp_date,
                 calendar=calendar,

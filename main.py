@@ -437,16 +437,16 @@ if __name__ == "__main__":
             )
     elif args.switch == "feature_selection":
         from typedef import CRet
-        from solutions.feature_selection import main_feature_selection, get_feature_selection_tests
         from project_cfg import factors_pool_neu
+        from solutions.shared import gen_feature_selection_tests
+        from solutions.feature_selection import main_feature_selection
 
         rets = [
             CRet(ret_class=proj_cfg.const.RET_CLASS, ret_name=n, shift=proj_cfg.const.SHIFT)
             for n in proj_cfg.const.RET_NAMES
         ]
-        test_mdls = get_feature_selection_tests(
+        test_mdls = gen_feature_selection_tests(
             trn_wins=proj_cfg.trn.wins,
-            sectors=proj_cfg.const.SECTORS,
             rets=rets,
         )
         main_feature_selection(

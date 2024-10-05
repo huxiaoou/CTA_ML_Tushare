@@ -141,7 +141,7 @@ class CMclrn:
         ret_data = ret_data.set_index(self.XY_INDEX).sort_index()
         return ret_data
 
-    def load_sector_available(self) -> pd.DataFrame:
+    def load_available(self) -> pd.DataFrame:
         sqldb = CMgrSqlDb(
             db_save_dir=self.db_struct_avlb.db_save_dir,
             db_name=self.db_struct_avlb.db_name,
@@ -149,9 +149,8 @@ class CMclrn:
             mode="r"
         )
         ret_data = sqldb.read(value_columns=["trade_date", "instrument", "sectorL1"])
-        ret_data.rename(columns={"sectorL1": "sector"}, inplace=True)
-        sec_avlb_data = ret_data.query(f"sector == '{self.test.sector}'")
-        return sec_avlb_data.set_index(self.XY_INDEX)
+        avlb_data = ret_data.rename(columns={"sectorL1": "sector"})
+        return avlb_data.set_index(self.XY_INDEX)
 
     @staticmethod
     def truncate_data_by_date(raw_data: pd.DataFrame, bgn_date: str, stp_date: str) -> pd.DataFrame:
@@ -159,9 +158,9 @@ class CMclrn:
         return new_data
 
     @staticmethod
-    def filter_by_sector(data: pd.DataFrame, sector_avlb_data: pd.DataFrame) -> pd.DataFrame:
+    def filter_by_avlb(data: pd.DataFrame, avlb_data: pd.DataFrame) -> pd.DataFrame:
         new_data = pd.merge(
-            left=sector_avlb_data, right=data,
+            left=avlb_data, right=data,
             left_index=True, right_index=True,
             how="inner"
         ).drop(labels="sector", axis=1)
@@ -271,14 +270,14 @@ class CMclrn:
 
     def process_trn(self, bgn_date: str, stp_date: str, calendar: CCalendar, verbose: bool):
         model_update_days = calendar.get_last_days_in_range(bgn_date=bgn_date, stp_date=stp_date)
-        sec_avlb_data = self.load_sector_available()
+        avlb_data = self.load_available()
         all_x_data, all_y_data = self.load_all_data(
             head_model_update_day=model_update_days[0],
             tail_model_update_day=model_update_days[-1],
             calendar=calendar
         )
-        sec_x_data = self.filter_by_sector(all_x_data, sec_avlb_data)
-        sec_y_data = self.filter_by_sector(all_y_data, sec_avlb_data)
+        sec_x_data = self.filter_by_avlb(all_x_data, avlb_data)
+        sec_y_data = self.filter_by_avlb(all_y_data, avlb_data)
         aligned_data = self.aligned_xy(sec_x_data, sec_y_data)
         for model_update_day in model_update_days:
             self.train(model_update_day, aligned_data, calendar, verbose)
@@ -316,9 +315,9 @@ class CMclrn:
 
     def process_prd(self, bgn_date: str, stp_date: str, calendar: CCalendar, verbose: bool) -> pd.DataFrame:
         months_groups = calendar.split_by_month(dates=calendar.get_iter_list(bgn_date, stp_date))
-        sec_avlb_data = self.load_sector_available()
+        avlb_data = self.load_available()
         all_x_data = self.load_x(bgn_date, stp_date)
-        sec_x_data = self.filter_by_sector(all_x_data, sec_avlb_data)
+        sec_x_data = self.filter_by_avlb(all_x_data, avlb_data)
         pred_res: list[pd.Series] = []
         for prd_month_id, prd_month_days in months_groups.items():
             month_prediction = self.predict(prd_month_id, prd_month_days, sec_x_data, calendar, verbose)
@@ -375,7 +374,7 @@ class CMclrnFromFeatureSelection(CMclrn):
             universe=universe,
             facs_pool=facs_pool,
         )
-        test_slc_fac = CTestFtSlc(trn_win=test.trn_win, sector=test.sector, ret=test.ret)
+        test_slc_fac = CTestFtSlc(trn_win=test.trn_win, ret=test.ret)
         self.slc_fac_reader = CFeatSlcReaderAndWriter(
             test=test_slc_fac,
             feat_slc_save_root_dir=feat_slc_save_root_dir,

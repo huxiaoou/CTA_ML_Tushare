@@ -1,4 +1,5 @@
 import os
+from itertools import product
 from husfort.qutility import SFR
 from husfort.qsqlite import CDbStruct, CSqlTable, CSqlVar
 from typedef import TFactorClass, TFactorNames, CTestFtSlc, CTestMdl, CSimArgs
@@ -62,7 +63,7 @@ def gen_fac_db(instru: str, db_save_root_dir: str, factor_class: TFactorClass, f
 def gen_feat_slc_db(test: CTestFtSlc, db_save_root_dir: str) -> CDbStruct:
     return CDbStruct(
         db_save_dir=os.path.join(db_save_root_dir, test.save_id),
-        db_name=f"{test.sector}.db",
+        db_name=f"{test.save_id}.db",
         table=CSqlTable(
             name="feature_selection",
             primary_keys=[
@@ -129,16 +130,24 @@ def gen_nav_db(db_save_dir: str, save_id: str) -> CDbStruct:
     )
 
 
-# -----------------------------------------
-# ------ arguments about simulations ------
-# -----------------------------------------
+# ------------------------------------------------------------------
+# ------ arguments about training, prediction and simulations ------
+# ------------------------------------------------------------------
+
+def gen_feature_selection_tests(trn_wins: list[int], rets: list[CRet]) -> list[CTestFtSlc]:
+    tests: list[CTestFtSlc] = []
+    for trn_win, ret in product(trn_wins, rets):
+        test = CTestFtSlc(trn_win=trn_win, ret=ret)
+        tests.append(test)
+    return tests
+
 
 def gen_model_tests(config_models: dict[str, dict]) -> list[CTestMdl]:
     tests: list[CTestMdl] = []
     for unique_id, m in config_models.items():
         ret = CRet(ret_class=m["ret_class"], ret_name=m["ret_name"], shift=m["shift"])
         model = CModel(model_type=m["model_type"], model_args=m["model_args"])
-        test = CTestMdl(unique_Id=unique_id, trn_win=m["trn_win"], sector=m["sector"], ret=ret, model=model)
+        test = CTestMdl(unique_Id=unique_id, trn_win=m["trn_win"], ret=ret, model=model)
         tests.append(test)
     return tests
 

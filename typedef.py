@@ -690,7 +690,6 @@ class CRet:
 @dataclass(frozen=True)
 class CTestFtSlc:
     trn_win: int
-    sector: str
     ret: CRet
 
     @property
@@ -721,7 +720,6 @@ TSector = str
 class CTestMdl:
     unique_Id: TUniqueId
     trn_win: int
-    sector: TSector
     ret: CRet
     model: CModel
 
@@ -735,7 +733,6 @@ class CTestMdl:
             self.ret.ret_class,  # 001L1-NEU
             self.tw,  # W060
             self.model.desc,  # Ridge
-            self.sector,  # AGR
             self.unique_Id,  # M0005
             self.ret.ret_name,  # CloseRtn001L1
         ]

@@ -2,7 +2,6 @@ import multiprocessing as mp
 import numpy as np
 import pandas as pd
 from loguru import logger
-from itertools import product
 from rich.progress import track, Progress
 from sklearn.feature_selection import mutual_info_regression
 from husfort.qutility import qtimer, SFG, SFY, error_handler, check_and_makedirs
@@ -10,7 +9,7 @@ from husfort.qcalendar import CCalendar
 from husfort.qsqlite import CDbStruct, CMgrSqlDb
 from typedef import TUniverse, TReturnName
 from typedef import TFactorClass, TFactorName, TFactorNames, TFactorComb, TFactorsPool
-from typedef import CTestFtSlc, CRet
+from typedef import CTestFtSlc
 from solutions.shared import gen_fac_db, gen_tst_ret_db, gen_feat_slc_db
 
 
@@ -165,7 +164,7 @@ class CFeatSlc(CFeatSlcReaderAndWriter):
         ret_data = ret_data.set_index(self.XY_INDEX).sort_index()
         return ret_data
 
-    def load_sector_available(self) -> pd.DataFrame:
+    def load_available(self) -> pd.DataFrame:
         sqldb = CMgrSqlDb(
             db_save_dir=self.db_struct_avlb.db_save_dir,
             db_name=self.db_struct_avlb.db_name,
@@ -173,9 +172,8 @@ class CFeatSlc(CFeatSlcReaderAndWriter):
             mode="r"
         )
         ret_data = sqldb.read(value_columns=["trade_date", "instrument", "sectorL1"])
-        ret_data.rename(columns={"sectorL1": "sector"}, inplace=True)
-        sec_avlb_data = ret_data.query(f"sector == '{self.test.sector}'")
-        return sec_avlb_data.set_index(self.XY_INDEX)
+        avlb_data = ret_data.rename(columns={"sectorL1": "sector"})
+        return avlb_data.set_index(self.XY_INDEX)
 
     @staticmethod
     def truncate_data_by_date(raw_data: pd.DataFrame, bgn_date: str, stp_date: str) -> pd.DataFrame:
@@ -183,9 +181,9 @@ class CFeatSlc(CFeatSlcReaderAndWriter):
         return new_data
 
     @staticmethod
-    def filter_by_sector(data: pd.DataFrame, sector_avlb_data: pd.DataFrame) -> pd.DataFrame:
+    def filter_by_avlb(data: pd.DataFrame, avlb_data: pd.DataFrame) -> pd.DataFrame:
         new_data = pd.merge(
-            left=sector_avlb_data, right=data,
+            left=avlb_data, right=data,
             left_index=True, right_index=True,
             how="inner"
         ).drop(labels="sector", axis=1)
@@ -239,7 +237,7 @@ class CFeatSlc(CFeatSlcReaderAndWriter):
             return selected_feats
         else:
             logger.error(
-                f"No features are selected @ {SFG(trade_date)} for {self.test.sector} {self.test.trn_win} {self.test.ret.ret_name}"
+                f"No features are selected @ {SFG(trade_date)} for {self.test.trn_win} {self.test.ret.ret_name}"
             )
             raise ValueError("No features are selected")
 
@@ -277,14 +275,14 @@ class CFeatSlc(CFeatSlcReaderAndWriter):
 
     def main(self, bgn_date: str, stp_date: str, calendar: CCalendar, verbose: bool):
         model_update_days = calendar.get_last_days_in_range(bgn_date=bgn_date, stp_date=stp_date)
-        sec_avlb_data = self.load_sector_available()
+        avlb_data = self.load_available()
         all_x_data, all_y_data = self.load_all_data(
             head_model_update_day=model_update_days[0],
             tail_model_update_day=model_update_days[-1],
             calendar=calendar
         )
-        sec_x_data = self.filter_by_sector(all_x_data, sec_avlb_data)
-        sec_y_data = self.filter_by_sector(all_y_data, sec_avlb_data)
+        sec_x_data = self.filter_by_avlb(all_x_data, avlb_data)
+        sec_y_data = self.filter_by_avlb(all_y_data, avlb_data)
         aligned_data = self.aligned_xy(sec_x_data, sec_y_data)
         aligned_data = self.drop_and_fill_nan(aligned_data)
         selected_features: list[pd.DataFrame] = []
@@ -340,7 +338,7 @@ class CFeatSlcMutInf(CFeatSlc):
         if i > 0 and verbose:
             logger.info(
                 f"After {SFY(i)} times iteration {SFY(f'{len(selected_feats):>2d}')} features are selected, "
-                f"{SFY(self.test.sector)}-{SFY(self.test.trn_win)}-{SFY(trade_date)}-{SFY(self.test.ret.desc)}"
+                f"{SFY(self.test.trn_win)}-{SFY(trade_date)}-{SFY(self.test.ret.desc)}"
             )
         return [TFactorName(z) for z in selected_feats.index]
 
@@ -435,15 +433,3 @@ def main_feature_selection(
                 verbose=verbose,
             )
     return 0
-
-
-def get_feature_selection_tests(trn_wins: list[int], sectors: list[str], rets: list[CRet]) -> list[CTestFtSlc]:
-    tests: list[CTestFtSlc] = []
-    for trn_win, sector, ret in product(trn_wins, sectors, rets):
-        test = CTestFtSlc(
-            trn_win=trn_win,
-            sector=sector,
-            ret=ret,
-        )
-        tests.append(test)
-    return tests

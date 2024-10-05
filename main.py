@@ -21,10 +21,10 @@ def parse_args():
     )
 
     # switch: available
-    arg_parser_sub = arg_parser_subs.add_parser(name="available", help="Calculate available universe")
+    arg_parser_subs.add_parser(name="available", help="Calculate available universe")
 
     # switch: market
-    arg_parser_sub = arg_parser_subs.add_parser(name="market", help="Calculate market universe")
+    arg_parser_subs.add_parser(name="market", help="Calculate market universe")
 
     # switch: test return
     arg_parser_sub = arg_parser_subs.add_parser(name="test_return", help="Calculate test returns")
@@ -44,7 +44,7 @@ def parse_args():
     )
 
     # switch: test return
-    arg_parser_sub = arg_parser_subs.add_parser(name="feature_selection", help="Select features")
+    arg_parser_subs.add_parser(name="feature_selection", help="Select features")
 
     # switch: mclrn
     arg_parser_sub = arg_parser_subs.add_parser(name="mclrn", help="machine learning functions")

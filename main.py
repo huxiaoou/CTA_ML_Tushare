@@ -471,7 +471,6 @@ if __name__ == "__main__":
                 ret_class=proj_cfg.const.RET_CLASS,
                 ret_names=proj_cfg.const.RET_NAMES,
                 shift=proj_cfg.const.SHIFT,
-                sectors=proj_cfg.const.SECTORS,
                 trn_wins=proj_cfg.trn.wins,
                 cfg_mdl_dir=proj_cfg.mclrn_dir,
                 cfg_mdl_file=proj_cfg.mclrn_cfg_file,

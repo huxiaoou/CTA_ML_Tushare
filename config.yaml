@@ -201,7 +201,7 @@ available:
 trn:
   wins: [ 60, 120, 240, 480, 720 ]
 feature_selection:
-  mut_info_threshold: 1.08
+  mut_info_threshold: 1.00
   min_feats: 5
 
 # ------- database structure -------
@@ -354,12 +354,12 @@ portfolios:
   P00:
     target: ClsRtn001L1RAW
     weights: [
-      "M0046", # Sharpe = 0.616, Calmar = 0.374, Sharpe + Calmar = 0.990, W240, LGBM, ClsRtn001L1RAW
+      "M0048", # Sharpe = 0.614, Calmar = 0.368, Sharpe + Calmar = 0.982, W240, LGBM, ClsRtn001L1RAW
     ]
   P01:
     target: OpnRtn001L1RAW
     weights: [
-      "M0182", # Sharpe = 0.720, Calmar = 0.481, Sharpe + Calmar = 1.201, W480, XGB, OpnRtn001L1RAW
+      "M0185", # Sharpe = 0.608, Calmar = 0.366, Sharpe + Calmar = 0.974, W480, XGB, OpnRtn001L1RAW
     ]
 omega:
   pid: "P-OMEGA"

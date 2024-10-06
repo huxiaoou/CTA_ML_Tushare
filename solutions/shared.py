@@ -80,7 +80,7 @@ def gen_prdct_db(db_save_root_dir: str, test: CTestMdl) -> CDbStruct:
         db_save_dir=db_save_root_dir,
         db_name=f"{test.save_tag_mdl}.db",
         table=CSqlTable(
-            name="factor",
+            name="prediction",
             primary_keys=[CSqlVar("trade_date", "TEXT"), CSqlVar("instrument", "TEXT")],
             value_columns=[CSqlVar(test.ret.ret_name, "REAL")],
         )

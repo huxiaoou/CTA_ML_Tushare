@@ -2,7 +2,7 @@ $bgn_date = "20120104"
 $bgn_date_ml = "20170201" # machine learning bgn date
 $bgn_date_sig = "20170703" # signal bgn date
 $bgn_date_sim = "20180102" # simulation bgn date
-$stp_date = "20240902"
+$stp_date = "20241008"
 
 # ------------------------
 # --- remove existence ---

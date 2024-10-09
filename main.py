@@ -661,6 +661,7 @@ if __name__ == "__main__":
                 eval_pfo_dir=proj_cfg.eval_pfo_dir,
                 bgn_date=bgn_date,
                 stp_date=stp_date,
+                vlines_index=["20240102", "20240902"],
             )
         else:
             raise ValueError(f"args.type == {args.type} is illegal")

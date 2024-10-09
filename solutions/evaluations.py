@@ -364,6 +364,7 @@ def main_plot_portfolios(
         eval_pfo_dir: str,
         bgn_date: str,
         stp_date: str,
+        vlines_index: list[str],
 ):
     check_and_makedirs(fig_save_dir := os.path.join(eval_pfo_dir, "plot-by-portfolio"))
     ret = {}
@@ -383,5 +384,6 @@ def main_plot_portfolios(
         line_width=1.5,
     )
     artist.plot()
+    artist.add_vlines_from_index(vlines_index=vlines_index, color="k")
     artist.save()
     return 0

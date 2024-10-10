@@ -25,17 +25,14 @@ def parse_model_configs(
             "trn_win": trn_win,
         }
         for model_type, model_args in models.items():
-            arg_val_combs = list(product(*model_args.values()))
-            arg_combs = [{k: v for k, v in zip(model_args, vi)} for vi in arg_val_combs]
-            for arg_comb in arg_combs:
-                for sector in sectors:
-                    sec_mdl_args = {
-                        "model_type": model_type,
-                        "model_args": arg_comb,
-                        "sector": sector,
-                    }
-                    iter_args[f"M{m:04d}"] = {**shared_args, **sec_mdl_args}
-                    m += 1
+            for sector in sectors:
+                sec_mdl_args = {
+                    "model_type": model_type,
+                    "model_args": model_args,
+                    "sector": sector,
+                }
+                iter_args[f"M{m:04d}"] = {**shared_args, **sec_mdl_args}
+                m += 1
     check_and_makedirs(cfg_mdl_dir)
     with open(path_config_models, "w+") as f:
         yaml.dump_all([iter_args], f)

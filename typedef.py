@@ -86,6 +86,7 @@ class CCfgProj:
     trn: CCfgTrn
     feat_slc: CCfgFeatSlc
     mclrn: dict[str, dict]
+    cv: int
     portfolios: dict[str, dict]
     omega: dict
 

@@ -8,6 +8,7 @@ import xgboost as xgb
 from loguru import logger
 from rich.progress import track, Progress
 from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
 from husfort.qutility import qtimer, SFG, SFY, check_and_makedirs, error_handler
 from husfort.qcalendar import CCalendar
 from husfort.qsqlite import CDbStruct, CMgrSqlDb
@@ -38,10 +39,13 @@ class CMclrn:
             mclrn_prd_dir: str,
             universe: TUniverse,
             facs_pool: TFactorsPool,
+            cv: int,
     ):
         self.using_instru = using_instru
         self.prototype = NotImplemented
         self.fitted_estimator = NotImplemented
+        self.param_grid: dict | dict[list] = {}
+        self.cv = cv
 
         self.test = test
         self.facs_pool: TFactorsPool = facs_pool
@@ -201,8 +205,15 @@ class CMclrn:
             x["instrument"] = x["instrument"].astype("category")
         else:
             x, y = x_data.values, y_data.values
-        self.fitted_estimator = self.prototype.fit(x, y)
+        grid_cv_seeker = GridSearchCV(self.prototype, self.param_grid, cv=self.cv)
+        self.fitted_estimator = grid_cv_seeker.fit(x, y)
         return 0
+
+    def check_model_existence(self, month_id: str) -> bool:
+        month_dir = os.path.join(self.mclrn_mdl_dir, month_id)
+        model_file = f"{self.test.save_tag_mdl}.skops"
+        model_path = os.path.join(month_dir, model_file)
+        return os.path.exists(model_path)
 
     def save_model(self, month_id: str):
         model_file = f"{self.test.save_tag_mdl}.skops"
@@ -221,6 +232,9 @@ class CMclrn:
                     'collections.defaultdict',
                     'lightgbm.basic.Booster', 'lightgbm.sklearn.LGBMRegressor',
                     'xgboost.core.Booster', 'xgboost.sklearn.XGBRegressor',
+                    'sklearn.metrics._scorer._PassthroughScorer',
+                    'sklearn.utils._metadata_requests.MetadataRequest',
+                    'sklearn.utils._metadata_requests.MethodMetadataRequest',
                 ],
             )
             return True
@@ -252,6 +266,12 @@ class CMclrn:
 
     def train(self, model_update_day: str, aligned_data: pd.DataFrame, calendar: CCalendar, verbose: bool):
         model_update_month = model_update_day[0:6]
+        if self.check_model_existence(month_id=model_update_month):
+            logger.info(
+                f"Model for {SFY(model_update_month)} @ {SFY(self.test.unique_Id)} have been calculated, "
+                "program will skip it."
+            )
+            return 0
         trn_b_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift - self.test.trn_win + 1)
         trn_e_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift)
         self.update_facs_pool_slc(trade_date=trn_e_date)
@@ -362,6 +382,7 @@ class CMclrnFromFeatureSelection(CMclrn):
             mclrn_prd_dir: str,
             universe: TUniverse,
             facs_pool: TFactorsPool,
+            cv: int
     ):
         super().__init__(
             using_instru=using_instru,
@@ -374,6 +395,7 @@ class CMclrnFromFeatureSelection(CMclrn):
             mclrn_prd_dir=mclrn_prd_dir,
             universe=universe,
             facs_pool=facs_pool,
+            cv=cv,
         )
         test_slc_fac = CTestFtSlc(trn_win=test.trn_win, sector=test.sector, ret=test.ret)
         self.slc_fac_reader = CFeatSlcReaderAndWriter(
@@ -391,34 +413,37 @@ class CMclrnFromFeatureSelection(CMclrn):
 
 
 class CMclrnRidge(CMclrnFromFeatureSelection):
-    def __init__(self, alpha: float, **kwargs):
+    def __init__(self, alpha: list[float], **kwargs):
         super().__init__(using_instru=False, **kwargs)
-        self.prototype = Ridge(alpha=alpha, fit_intercept=False)
+        self.param_grid = {"alpha": alpha}
+        self.prototype = Ridge(fit_intercept=False)
 
 
 class CMclrnLGBM(CMclrnFromFeatureSelection):
     def __init__(
             self,
-            boosting_type: str,
-            metric: str,
-            max_depth: int,
-            num_leaves: int,
-            learning_rate: float,
-            n_estimators: int,
-            min_child_samples: int,
-            max_bin: int,
+            boosting_type: list[str],
+            n_estimators: list[int],
+            max_depth: list[int],
+            num_leaves: list[int],
+            learning_rate: list[float],
+            min_child_samples: list[int],
+            max_bin: list[int],
+            metric: list[str],
             **kwargs,
     ):
         super().__init__(using_instru=True, **kwargs)
+        self.param_grid = {
+            "boosting_type": boosting_type,
+            "n_estimators": n_estimators,
+            "max_depth": max_depth,
+            "num_leaves": num_leaves,
+            "learning_rate": learning_rate,
+            "min_child_samples": min_child_samples,
+            "max_bin": max_bin,
+            "metric": metric,
+        }
         self.prototype = lgb.LGBMRegressor(
-            boosting_type=boosting_type,
-            metric=metric,
-            max_depth=max_depth,
-            num_leaves=num_leaves,
-            learning_rate=learning_rate,
-            n_estimators=n_estimators,
-            min_child_samples=min_child_samples,
-            max_bin=max_bin,
             # other fixed parameters
             force_row_wise=True,
             verbose=-1,
@@ -430,24 +455,26 @@ class CMclrnLGBM(CMclrnFromFeatureSelection):
 class CMclrnXGB(CMclrnFromFeatureSelection):
     def __init__(
             self,
-            booster: str,
-            n_estimators: int,
-            max_depth: int,
-            max_leaves: int,
-            grow_policy: str,
-            learning_rate: float,
-            objective: str,
+            booster: list[str],
+            n_estimators: list[int],
+            max_depth: list[int],
+            max_leaves: list[int],
+            learning_rate: list[float],
+            objective: list[str],
+            grow_policy: list[str],
             **kwargs,
     ):
         super().__init__(using_instru=False, **kwargs)
+        self.param_grid = {
+            "booster": booster,
+            "n_estimators": n_estimators,
+            "max_depth": max_depth,
+            "max_leaves": max_leaves,
+            "learning_rate": learning_rate,
+            "objective": objective,
+            "grow_policy": grow_policy,
+        }
         self.prototype = xgb.XGBRegressor(
-            booster=booster,
-            n_estimators=n_estimators,
-            max_depth=max_depth,
-            max_leaves=max_leaves,
-            grow_policy=grow_policy,
-            learning_rate=learning_rate,
-            objective=objective,
             # other fixed parameters
             verbosity=0,
             random_state=self.RANDOM_STATE,
@@ -472,6 +499,7 @@ def process_for_cMclrn(
         mclrn_prd_dir: str,
         universe: TUniverse,
         facs_pool: TFactorsPool,
+        cv: int,
         bgn_date: str,
         stp_date: str,
         calendar: CCalendar,
@@ -496,6 +524,7 @@ def process_for_cMclrn(
         mclrn_prd_dir=mclrn_prd_dir,
         universe=universe,
         facs_pool=facs_pool,
+        cv=cv,
         **test.model.model_args,
     )
     os.environ["OMP_NUM_THREADS"] = "8"
@@ -515,6 +544,7 @@ def main_train_and_predict(
         mclrn_prd_dir: str,
         universe: TUniverse,
         facs_pool: TFactorsPool,
+        cv: int,
         bgn_date: str,
         stp_date: str,
         calendar: CCalendar,
@@ -541,6 +571,7 @@ def main_train_and_predict(
                             "mclrn_prd_dir": mclrn_prd_dir,
                             "universe": universe,
                             "facs_pool": facs_pool,
+                            "cv": cv,
                             "bgn_date": bgn_date,
                             "stp_date": stp_date,
                             "calendar": calendar,
@@ -565,6 +596,7 @@ def main_train_and_predict(
                 mclrn_prd_dir=mclrn_prd_dir,
                 universe=universe,
                 facs_pool=facs_pool,
+                cv=cv,
                 bgn_date=bgn_date,
                 stp_date=stp_date,
                 calendar=calendar,

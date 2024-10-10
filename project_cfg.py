@@ -113,6 +113,7 @@ proj_cfg = CCfgProj(
     trn=CCfgTrn(**_config["trn"]),
     feat_slc=CCfgFeatSlc(**_config["feature_selection"]),
     mclrn=_config["mclrn"],
+    cv=_config["cv"],
     portfolios=_config["portfolios"],
     omega=_config["omega"],
 )

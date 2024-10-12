@@ -199,7 +199,7 @@ available:
   win: 5
   amount_threshold: 50000.00 # unit = WANYUAN, >= 50000 WANYUAN, or 500 million
 trn:
-  wins: [ 60, 120, 240, 480, 720 ]
+  wins: [ 120, 240, 480, 720 ]
 feature_selection:
   mut_info_threshold: 0.10
   min_feats: 5

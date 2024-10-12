@@ -847,19 +847,29 @@ class CFactorSMT(CFactorRaw):
             smt_w = smt_df["amount"] / smt_amt_sum
             smt_prc = smt_df[prc] @ smt_w
             smt_ret = smt_df[ret] @ smt_w
-            return (smt_prc / tot_prc - 1) * 1e4, (smt_ret - tot_ret) * 1e4
+            smt_p = ((smt_prc / tot_prc - 1) * 1e4) if tot_prc > 0 else 0
+            smt_r = (smt_ret - tot_ret) * 1e4
+            return smt_p, smt_r
         else:
             return np.nan, np.nan
+
+    def cal_by_trade_date(self, trade_date_data: pd.DataFrame) -> pd.Series:
+        res = {}
+        for lbd in self.cfg.lbds:
+            p_lbl = f"{self.factor_class}T{int(lbd * 10):02d}P_RAW"
+            r_lbl = f"{self.factor_class}T{int(lbd * 10):02d}R_RAW"
+            smt_p, smt_r = self.cal_smt(trade_date_data, lbd=lbd, prc="vwap", ret="freq_ret")
+            res[p_lbl], res[r_lbl] = smt_p, smt_r
+        return pd.Series(res)
 
     def cal_factor_by_instru(
             self, instru: str, bgn_date: str, stp_date: str, calendar: CCalendar
     ) -> pd.DataFrame:
-        win_start_date = calendar.get_start_date(bgn_date, max(self.cfg.wins), -5)
         adj_major_data = self.load_preprocess(
-            instru, bgn_date=win_start_date, stp_date=stp_date,
+            instru, bgn_date=bgn_date, stp_date=stp_date,
             values=["trade_date", "ticker_major"],
         )
-        adj_minb_data = self.load_minute_bar(instru, bgn_date=win_start_date, stp_date=stp_date)
+        adj_minb_data = self.load_minute_bar(instru, bgn_date=bgn_date, stp_date=stp_date)
         adj_minb_data["freq_ret"] = adj_minb_data["close"] / adj_minb_data["pre_close"] - 1
         adj_minb_data["freq_ret"] = adj_minb_data["freq_ret"].fillna(0)
 
@@ -869,29 +879,9 @@ class CFactorSMT(CFactorRaw):
 
         # smart idx
         adj_minb_data["smart_idx"] = self.cal_smart_idx(adj_minb_data, ret="freq_ret", vol="vol")
+        adj_minb_data = adj_minb_data.sort_values(by=["trade_date", "smart_idx"], ascending=[True, False])
 
-        factor_win_dfs: list[pd.DataFrame] = []
-        for win in self.cfg.wins:
-            iter_tail_dates = calendar.get_iter_list(bgn_date, stp_date)
-            base_bgn_date = calendar.get_next_date(iter_tail_dates[0], -win + 1)
-            base_end_date = calendar.get_next_date(iter_tail_dates[-1], -win + 1)
-            base_stp_date = calendar.get_next_date(base_end_date, shift=1)
-            iter_head_dates = calendar.get_iter_list(base_bgn_date, base_stp_date)
-            p_data, r_data = {}, {}
-            for iter_bgn_date, iter_end_date in zip(iter_head_dates, iter_tail_dates):
-                sub_data = adj_minb_data.query(f"(trade_date >= '{iter_bgn_date}') & (trade_date <= '{iter_end_date}')")
-                sorted_sub_data = sub_data.sort_values(by="smart_idx", ascending=False)
-                p_data[iter_end_date], r_data[iter_end_date] = {}, {}
-                for lbd in self.cfg.lbds:
-                    p_lbl = f"{self.factor_class}{win:03d}T{int(lbd * 10):02d}P_RAW"
-                    r_lbl = f"{self.factor_class}{win:03d}T{int(lbd * 10):02d}R_RAW"
-                    smt_p, smt_r = self.cal_smt(sorted_sub_data, lbd=lbd, prc="vwap", ret="freq_ret")
-                    p_data[iter_end_date][p_lbl], r_data[iter_end_date][r_lbl] = smt_p, smt_r
-            factor_win_p_data = pd.DataFrame.from_dict(p_data, orient="index")
-            factor_win_r_data = pd.DataFrame.from_dict(r_data, orient="index")
-            factor_win_dfs.append(factor_win_p_data)
-            factor_win_dfs.append(factor_win_r_data)
-        concat_factor_data = pd.concat(factor_win_dfs, axis=1, ignore_index=False)
+        concat_factor_data = adj_minb_data.groupby(by="trade_date").apply(self.cal_by_trade_date)
         input_data = pd.merge(
             left=adj_major_data,
             right=concat_factor_data,

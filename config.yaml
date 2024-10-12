@@ -308,7 +308,6 @@ factors:
     wins: [ 20, 40, 60 ]
     dfts: [ 3 ]
   SMT:
-    wins: [ 5, 10, 20 ]
     lbds: [ 0.2, 0.4, 0.6 ]
   RWTC:
     wins: [ 5, 10, 20 ]

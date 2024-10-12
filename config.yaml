@@ -40,10 +40,10 @@ mkt_idxes:
 universe:
   AU.SHF:
     sectorL0: C
-    sectorL1: AUG
+    sectorL1: MTL
   AG.SHF:
     sectorL0: C
-    sectorL1: AUG
+    sectorL1: MTL
   CU.SHF:
     sectorL0: C
     sectorL1: MTL
@@ -241,7 +241,7 @@ db_struct:
 # ------- const -------
 CONST:
   COST: 0.0003
-  SECTORS: [ "AUG", "MTL", "BLK", "OIL", "CHM", "AGR" ]
+  SECTORS: [ "MTL", "BLK", "OIL", "CHM", "AGR" ]
   WIN: 10
   LAG: 1
   SHIFT: 11

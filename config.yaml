@@ -228,7 +228,7 @@ db_struct:
       value_columns:
         market: REAL
         C: REAL
-        AUG: REAL
+#        AUG: REAL
         MTL: REAL
         BLK: REAL
         OIL: REAL
@@ -331,23 +331,23 @@ cv: 5
 mclrn:
   Ridge:
     alpha: [ 1.0, 10.0, 100.0 ] # [1.0, 10.0, 100.0, 200.0, 500.0]
-  LGBM:
-    boosting_type: [ "gbdt" ]
-    n_estimators: [ 5, 10, 20 ] # [50, 100, 200]
-    max_depth: [ -1 ]
-    num_leaves: [ 2, 4, 8 ]
-    learning_rate: [ 0.1 ] # [0.01, 0.1, 1.0]
-    min_child_samples: [ 15 ] # min_data_in_leaf
-    max_bin: [ 15 ]
-    metric: [ "l2" ]
-  XGB:
-    booster: [ "dart" ] # ["gbtree", "gblinear", "dart"]
-    n_estimators: [ 5, 10, 20 ]
-    max_depth: [ 2 ]
-    max_leaves: [ 4 ]
-    learning_rate: [ 0.01, 0.1, 0.5 ]
-    objective: [ "reg:squarederror" ]
-    grow_policy: [ "lossguide" ] # ["depthwise", "lossguide"]
+#  LGBM:
+#    boosting_type: [ "gbdt" ]
+#    n_estimators: [ 5, 10, 20 ] # [50, 100, 200]
+#    max_depth: [ -1 ]
+#    num_leaves: [ 2, 4, 8 ]
+#    learning_rate: [ 0.1 ] # [0.01, 0.1, 1.0]
+#    min_child_samples: [ 15 ] # min_data_in_leaf
+#    max_bin: [ 15 ]
+#    metric: [ "l2" ]
+#  XGB:
+#    booster: [ "dart" ] # ["gbtree", "gblinear", "dart"]
+#    n_estimators: [ 5, 10, 20 ]
+#    max_depth: [ 2 ]
+#    max_leaves: [ 4 ]
+#    learning_rate: [ 0.01, 0.1, 0.5 ]
+#    objective: [ "reg:squarederror" ]
+#    grow_policy: [ "lossguide" ] # ["depthwise", "lossguide"]
 
 # ------- portfolios -------
 portfolios:

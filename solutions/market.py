@@ -32,7 +32,7 @@ def cal_market_return(
 ) -> pd.DataFrame:
     available_data = load_available(db_struct=db_struct_avlb, bgn_date=bgn_date, stp_date=stp_date)
     input_for_return = available_data.set_index("trade_date")
-    input_for_return["rel_wgt"] = np.sqrt(input_for_return["amount"])
+    input_for_return["rel_wgt"] = 1 / np.sqrt(input_for_return["amount"])
     ret = {"market": input_for_return.groupby(by="trade_date").apply(cal_market_return_by_date)}
     for sector, sector_df in input_for_return.groupby(by="sectorL0"):
         ret[sector] = sector_df.groupby(by="trade_date").apply(cal_market_return_by_date)

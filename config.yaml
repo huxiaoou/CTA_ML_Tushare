@@ -40,10 +40,10 @@ mkt_idxes:
 universe:
   AU.SHF:
     sectorL0: C
-    sectorL1: MTL
+    sectorL1: AUG
   AG.SHF:
     sectorL0: C
-    sectorL1: MTL
+    sectorL1: AUG
   CU.SHF:
     sectorL0: C
     sectorL1: MTL
@@ -228,7 +228,7 @@ db_struct:
       value_columns:
         market: REAL
         C: REAL
-#        AUG: REAL
+        AUG: REAL
         MTL: REAL
         BLK: REAL
         OIL: REAL
@@ -308,6 +308,7 @@ factors:
     wins: [ 20, 40, 60 ]
     dfts: [ 3 ]
   SMT:
+    wins: [ 5, 10, 20 ]
     lbds: [ 0.2, 0.4, 0.6 ]
   RWTC:
     wins: [ 5, 10, 20 ]
@@ -354,20 +355,22 @@ portfolios:
   P00:
     target: ClsRtn001L1RAW
     weights: [
-      "M0024", # AGR Sharpe = 0.697, Calmar = 0.500, Sharpe + Calmar = 1.197, W240, LGBM, ClsRtn001L1RAW
-      "M0046", # BLK Sharpe = 0.985, Calmar = 0.473, Sharpe + Calmar = 1.458, W720, Ridge, ClsRtn001L1RAW
-      "M0033", # CHM Sharpe = 1.103, Calmar = 0.865, Sharpe + Calmar = 1.967, W480, Ridge, ClsRtn001L1RAW
-      "M0040", # MTL Sharpe = 0.704, Calmar = 0.363, Sharpe + Calmar = 1.067, W480, XGB, ClsRtn001L1RAW
-      "M0027", # OIL Sharpe = 0.113, Calmar = 0.061, Sharpe + Calmar = 0.174, W240, XGB, ClsRtn001L1RAW
+      "M0053", # AGR Sharpe = 0.734, Calmar = 0.608, Sharpe + Calmar = 1.341, W240, XGB, ClsRtn001L1RAW
+      "M0060", # AUG Sharpe = 0.698, Calmar = 0.449, Sharpe + Calmar = 1.147, W480, LGBM, ClsRtn001L1RAW
+      "M0074", # BLK Sharpe = 1.081, Calmar = 0.967, Sharpe + Calmar = 2.049, W720, Ridge, ClsRtn001L1RAW
+      "M0058", # CHM Sharpe = 1.120, Calmar = 0.967, Sharpe + Calmar = 2.087, W480, Ridge, ClsRtn001L1RAW
+      "M0049", # MTL Sharpe = 0.377, Calmar = 0.223, Sharpe + Calmar = 0.600, W240, XGB, ClsRtn001L1RAW
+      "M0021", # OIL Sharpe = 0.501, Calmar = 0.371, Sharpe + Calmar = 0.871, W120, Ridge, ClsRtn001L1RAW
     ]
   P01:
     target: OpnRtn001L1RAW
     weights: [
-      "M0089", # AGR Sharpe = 0.713, Calmar = 0.438, Sharpe + Calmar = 1.151, W240, XGB, OpnRtn001L1RAW
-      "M0106", # BLK Sharpe = 0.992, Calmar = 0.947, Sharpe + Calmar = 1.939, W720, Ridge, OpnRtn001L1RAW
-      "M0078", # CHM Sharpe = 0.885, Calmar = 0.861, Sharpe + Calmar = 1.746, W240, Ridge, OpnRtn001L1RAW
-      "M0080", # MTL Sharpe = 0.372, Calmar = 0.223, Sharpe + Calmar = 0.594, W240, LGBM, OpnRtn001L1RAW
-      "M0097", # OIL Sharpe = 0.207, Calmar = 0.080, Sharpe + Calmar = 0.287, W480, LGBM, OpnRtn001L1RAW
+      "M0143", # AGR Sharpe = 0.930, Calmar = 0.702, Sharpe + Calmar = 1.632, W240, XGB, OpnRtn001L1RAW
+      "M0168", # AUG Sharpe = 0.323, Calmar = 0.226, Sharpe + Calmar = 0.549, W720, LGBM, OpnRtn001L1RAW
+      "M0164", # BLK Sharpe = 1.032, Calmar = 0.880, Sharpe + Calmar = 1.913, W720, Ridge, OpnRtn001L1RAW
+      "M0148", # CHM Sharpe = 1.060, Calmar = 1.060, Sharpe + Calmar = 2.121, W480, Ridge, OpnRtn001L1RAW
+      "M0157", # MTL Sharpe = 0.577, Calmar = 0.317, Sharpe + Calmar = 0.894, W480, XGB, OpnRtn001L1RAW
+      "M0123", # OIL Sharpe = -0.009, Calmar = -0.003, Sharpe + Calmar = -0.012, W120, XGB, OpnRtn001L1RAW
     ]
 omega:
   pid: "P-OMEGA"

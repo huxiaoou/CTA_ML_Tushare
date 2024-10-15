@@ -241,7 +241,7 @@ db_struct:
 # ------- const -------
 CONST:
   COST: 0.0003
-  SECTORS: [ "MTL", "BLK", "OIL", "CHM", "AGR" ]
+  SECTORS: [ "AUG", "MTL", "BLK", "OIL", "CHM", "AGR" ]
   WIN: 10
   LAG: 1
   SHIFT: 11

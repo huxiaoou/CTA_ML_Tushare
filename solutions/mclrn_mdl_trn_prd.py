@@ -267,10 +267,10 @@ class CMclrn:
     def train(self, model_update_day: str, aligned_data: pd.DataFrame, calendar: CCalendar, verbose: bool):
         model_update_month = model_update_day[0:6]
         if self.check_model_existence(month_id=model_update_month):
-            logger.info(
-                f"Model for {SFY(model_update_month)} @ {SFY(self.test.unique_Id)} have been calculated, "
-                "program will skip it."
-            )
+            # logger.info(
+            #     f"Model for {SFY(model_update_month)} @ {SFY(self.test.unique_Id)} have been calculated, "
+            #     "program will skip it."
+            # )
             return 0
         trn_b_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift - self.test.trn_win + 1)
         trn_e_date = calendar.get_next_date(model_update_day, shift=-self.test.ret.shift)
